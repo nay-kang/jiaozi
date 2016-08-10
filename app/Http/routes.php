@@ -13,3 +13,7 @@
 $app->get('/blank',function(){
 	return 'hello world';
 });
+
+$app->get('/pv_img.gif','CollectionController@pageview');
+$app->get('/ec_img.gif','CollectionController@ecommerce');
+$app->get('/event_img.gif','CollectionController@event');
