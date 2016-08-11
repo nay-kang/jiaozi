@@ -79,6 +79,14 @@ class ElasticClient{
 		]);
 	}
 	
+	public function saveEvent(array $data){
+		$this->esClient->index([
+				'index' => $this->getIndex(self::INDEX_EVENT),
+				'type'	=> self::INDEX_TYPE_NAME,
+				'body'	=> $data,
+		]);
+	}
+	
 	protected function getIndex($index){
 		return env('ELASTIC_INDEX','stylewe').'_'.$index;
 	}
