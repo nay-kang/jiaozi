@@ -34,7 +34,7 @@ class CollectionController extends Controller{
 	}
 	
 	public function event(Request $request){
-		if(!($data=$this->getCommonData($requset))){
+		if(!($data=$this->getCommonData($request))){
 			return $this->returnFailed();
 		}
 		$data = array_merge([
