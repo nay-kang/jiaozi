@@ -71,25 +71,31 @@ class ElasticClient{
 		return static::$instance;
 	}
 	
+	/*
+	 * Save Operation
+	 */
+	
 	public function savePageview(array $data){
+		$date = (new \DateTime())->format('Y.m.d');
 		$this->esClient->index([
-				'index'	=> $this->getIndex(self::INDEX_PAGEVIEW),
+				'index'	=> $this->getIndex(self::INDEX_PAGEVIEW,$date),
 				'type'	=> self::INDEX_TYPE_NAME,
 				'body'	=> $data,
 		]);
 	}
 	
 	public function saveEvent(array $data){
+		$date = (new \DateTime())->format('Y.m.d');
 		$this->esClient->index([
-				'index' => $this->getIndex(self::INDEX_EVENT),
+				'index' => $this->getIndex(self::INDEX_EVENT,$date),
 				'type'	=> self::INDEX_TYPE_NAME,
 				'body'	=> $data,
 		]);
 	}
 	
-	protected function getIndex($index){
-		return env('ELASTIC_INDEX','stylewe').'_'.$index;
-	}
+	/*
+	 * config mapping
+	 */
 	
 	public function updateMapping($index,array $mapping,$force=false){
 		
@@ -120,7 +126,7 @@ class ElasticClient{
 		}
 	}
 	
-	public function configPageviewMapping($force=false){
+	public function configPageviewMapping($suffix,$force=false){
 		$mapping = array_merge([
 				'referer' => [
 						'type' => 'string',
@@ -136,10 +142,10 @@ class ElasticClient{
 				'properties' => $mapping
 		];
 		
-		$this->updateMapping($this->getIndex(self::INDEX_PAGEVIEW), $mapping,$force);
+		$this->updateMapping($this->getIndex(self::INDEX_PAGEVIEW,$suffix), $mapping,$force);
 	}
 	
-	public function configEventMapping($force=false){
+	public function configEventMapping($suffix,$force=false){
 		$mapping = array_merge([
 				'category'	=> [
 						'type' => 'string',
@@ -161,6 +167,13 @@ class ElasticClient{
 		$mapping = [
 				'properties' => $mapping
 		];
-		$this->updateMapping($this->getIndex(self::INDEX_EVENT), $mapping,$force);
+		$this->updateMapping($this->getIndex(self::INDEX_EVENT,$suffix), $mapping,$force);
+	}
+	
+	/*
+	 * common method 
+	 */
+	protected function getIndex($index,$suffix){
+		return env('ELASTIC_INDEX','stylewe').'_'.$index.'-'.$suffix;
 	}
 }

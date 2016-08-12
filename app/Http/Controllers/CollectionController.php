@@ -3,7 +3,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Log;
 use DeviceDetector\DeviceDetector;
 use DeviceDetector\Parser\Device\DeviceParserAbstract;
 use App\Extensions\DeviceDetectorRedisCache;
@@ -94,7 +93,11 @@ class CollectionController extends Controller{
 		return $response;
 	}
 	
-	
+	/**
+	 * 分析user-agent
+	 * @param unknown $userAgent
+	 * @return unknown[]|string[]
+	 */
 	protected function parseUserAgent($userAgent){
 		//set version style x.y.z
 		DeviceParserAbstract::setVersionTruncation(DeviceParserAbstract::VERSION_TRUNCATION_PATCH);
