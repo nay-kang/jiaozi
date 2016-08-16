@@ -162,6 +162,9 @@ class ElasticClient{
 				'value' => [
 						'type' => 'string',
 						'index' => 'not_analyzed'
+				],
+				'value_number' => [
+						'type' => 'double',
 				]
 		],static::$commonMapping);
 		$mapping = [

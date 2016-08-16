@@ -41,6 +41,7 @@ class CollectionController extends Controller{
 			'action' => $request->query('action',''),
 			'label' => $request->query('label',''),
 			'value' => $request->query('value',''),
+			'value_number' => $request->query('value_number',null),
 		],$data);
 		ElasticClient::getInstance()->saveEvent($data);
 		return $this->returnImage();
