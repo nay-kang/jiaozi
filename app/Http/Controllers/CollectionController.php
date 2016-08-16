@@ -113,8 +113,8 @@ class CollectionController extends Controller{
 			$client = $dd->getClient();
 			$os = $dd->getOs();
 			$data = [
-				'os'				=> $os['name'],
-				'os_version'		=> $os['version'],
+				'os'				=> isset($os['name'])?$os['name']:'other',
+				'os_version'		=> isset($os['version'])?$os['version']:'0.0.0',
 				'device'			=> $dd->getModel()?:$dd->getDeviceName(),
 				'client_type'		=> $client['type'],
 				'client_name'		=> $client['name'],
