@@ -11,7 +11,7 @@ use App\Extensions\ElasticClient;
 class CollectionController extends Controller{
 	
 	const GIF_ONE_PIXEL = 'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw';
-	const COOKIE_KEY = 'stylewe_uuid';
+	const COOKIE_KEY = '_jiaozi_uid';
 	
 	public function pageview(Request $requset){
 		if(!($data=$this->getCommonData($requset))){
