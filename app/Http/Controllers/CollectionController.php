@@ -23,6 +23,26 @@ class CollectionController extends Controller{
 		if(is_null($data['url'])){
 			$data['url'] = $requset->header('referer','');
 		}
+		//有utm_source来源标示的
+		if($requset->has('utm_source')){
+			$data['utm_source'] = $requset->query('utm_source');
+			$data['utm_medium'] = $requset->query('utm_medium',null);
+			$data['utm_term'] = $requset->query('utm_term',null);
+			$data['utm_content'] = $requset->query('utm_content',null);
+			$data['utm_campaign'] = $requset->query('utm_campaign',null);
+			
+		//referer为空，代表是direct直接来源
+		}else if(empty($data['referer'])){
+			$data['utm_source'] = 'direct';
+			
+		//判断referer和url是否是同一个host，不是则代表从其他地方跳转过来的
+		}else{
+			$r = parse_url($data['referer']);
+			$l = parse_url($data['url']);
+			if($r['host']!==$l['host']){
+				$data['utm_source'] = $data['referer'];
+			}
+		}
 		ElasticClient::getInstance()->savePageview($data);
 
 		return $this->returnImage();
@@ -66,7 +86,7 @@ class CollectionController extends Controller{
 	protected function getCommonData(Request $request){
 		$uuid = $request->cookies->get(self::COOKIE_KEY,null);
 		if(is_null($uuid)){
-			$uuid = $request->query('stylewe_uuid',null);
+			$uuid = $request->query(self::COOKIE_KEY,null);
 		}
 		if(is_null($uuid)){
 			return false;

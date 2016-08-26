@@ -136,6 +136,26 @@ class ElasticClient{
 						'type' => 'string',
 						'index' => 'not_analyzed',
 				],
+				'utm_source' => [
+						'type' => 'string',
+						'index' => 'not_analyzed',
+				],
+				'utm_medium' => [
+						'type' => 'string',
+						'index' => 'not_analyzed',
+				],
+				'utm_term' => [
+						'type' => 'string',
+						'index' => 'not_analyzed',
+				],
+				'utm_content' => [
+						'type' => 'string',
+						'index' => 'not_analyzed',
+				],
+				'utm_campaign' => [
+						'type' => 'string',
+						'index' => 'not_analyzed',
+				],
 		],static::$commonMapping);
 		
 		$mapping = [
