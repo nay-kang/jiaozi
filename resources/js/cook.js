@@ -267,6 +267,7 @@ function appendPageViewImg(){
 	var url = HOST+"/collect/pv_img.gif?"+paramsToUrl(params);
 	var img = window.document.createElement('img');
 	img.setAttribute("src",url);
+	img.setAttribute("style","display:none");
 	document.write(img.outerHTML);
 }
 
