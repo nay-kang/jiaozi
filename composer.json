@@ -6,7 +6,7 @@
     "type": "project",
     "require": {
         "php": ">=5.5.9",
-        "laravel/lumen-framework": "5.2.*",
+        "laravel/lumen-framework": "5.4.*",
         "vlucas/phpdotenv": "~2.2",
         "elasticsearch/elasticsearch": "^2.2",
         "piwik/device-detector": "^3.7",

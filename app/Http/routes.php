@@ -10,10 +10,7 @@
  * | and give it the Closure to call when that URI is requested.
  * |
  */
-$app->get('/blank', function () {
-    return 'hello world';
-});
 
-$app->get('/pv_img.gif', 'CollectionController@pageview');
-$app->get('/ec_img.gif', 'CollectionController@ecommerce');
-$app->get('/event_img.gif', 'CollectionController@event');
+$app->get('/collect_img.gif','CollectionController@collect');
+
+$app->get('/blank', 'CollectionController@blank');
