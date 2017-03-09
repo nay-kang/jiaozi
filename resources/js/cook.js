@@ -226,50 +226,99 @@ return UUID;
 	return init(function () {});
 }));
 
-/**
+
+
+/***************************
  * Self Code
  */
-//const
-var HOST = 'https://jiaozi.stylewe.com';
-var COOKIE_KEY = '_jiaozi_uid';
-//set Cookie
-var cookieStore = Cookies.noConflict();
-var uuid = cookieStore.get(COOKIE_KEY);
-if(!uuid){
-	uuid = UUID.generate();
-	uuid = uuid.replace(/-/g,'');
-}
 
-/*define domain*/
-var domain = '.stylewe.com'
-
-cookieStore.set(COOKIE_KEY,uuid,{path:"/",expires:365,'domain':domain});
-
-function paramsToUrl(params){
-	var url = '';
-	for(var key in params){
-		if(url != ''){
-			url += '&';
+Jiaozi = function(){
+	this.init();
+};
+Jiaozi.prototype = {
+	'init':function(){
+		var COOKIE_KEY = '_jiaozi_uid';
+		var baseHost = "jiaozi.stylewe.com";
+		//set Cookie
+		var cookieStore = Cookies.noConflict();
+		var uuid = cookieStore.get(COOKIE_KEY);
+		if(!uuid){
+			uuid = UUID.generate();
+			uuid = uuid.replace(/-/g,'');
 		}
-		url += encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
+
+		/*get domain*/
+		var domain = window.location.hostname;
+		domain = domain.split(".");
+		domain = domain.slice(-2,domain.length);
+		domain = "."+domain.join(".");
+
+		cookieStore.set(COOKIE_KEY,uuid,{path:"/",expires:365,'domain':domain});
+
+		/*pid*/
+		pid = null;
+		scripts = document.querySelectorAll('script');
+		for(i in scripts){
+			src = scripts[i].src;
+			if(src.search(baseHost)>-1){
+				var r = null;
+				if(r = src.match(/pid\=(\w+)&?/)){
+					pid = r[1];
+					break;	
+				}
+			}
+		}
+		
+		
+		this.info = {
+			"baseHost":baseHost,
+			'host':"https://"+baseHost,
+			'cookieKey':COOKIE_KEY,
+			'uuid':uuid,
+			'pid':pid
+		};
+	},
+	'paramsToUrl':function(params){
+		console.log(params);
+		var url = '';
+		for(var key in params){
+			if(url != ''){
+				url += '&';
+			}
+			url += encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
+		}
+		return url;
+	},
+	'send':function(type,data){
+		console.log(this);
+		data[this.info.cookieKey] = this.info.uuid;
+		data['pid'] = this.info.pid;
+		data['type'] = type;
+		
+		var url = this.info.host+"/collect_img.gif?"+this.paramsToUrl(data);
+		var img = window.document.createElement('img');
+		img.setAttribute("src",url);
+		img.setAttribute("style","display:none");
+		window.document.body.appendChild(img);
+	},
+	'pageview':function(){
+		var params = {
+			"referer":window.document.referrer,
+			"url":window.location.href,
+		};
+		this.send('pageview',params);
+	},
+	'event':function(data){
+		this.send('event',data);
 	}
-	return url;
-}
+};
 
+jz = new Jiaozi();
 
-function appendPageViewImg(){
-	var params = {
-		"referer":window.document.referrer,
-		"url":window.location.href
-	};
-	params[COOKIE_KEY] = uuid;
-	
-	var url = HOST+"/collect/pv_img.gif?"+paramsToUrl(params);
-	var img = window.document.createElement('img');
-	img.setAttribute("src",url);
-	img.setAttribute("style","display:none");
-	document.write(img.outerHTML);
-}
+window._JZ = {
+	"send":jz.send.bind(jz),
+	"pageview":jz.pageview.bind(jz),
+	"event":jz.event.bind(jz),
+};
 
-appendPageViewImg();
 })();
