@@ -11,7 +11,7 @@ class CollectionController extends Controller
     const GIF_ONE_PIXEL = 'R0lGODlhAQABAJAAAP8AAAAAACH5BAUQAAAALAAAAAABAAEAAAICBAEAOw';
     
     public function collect(Request $request){
-        
+        $request->setTrustedProxies(['0.0.0.0/0']);
         $this->dispatch(new CollectionJob([
             'cookie'    => $request->cookies->all(),
             'query'     => $request->query->all(),
