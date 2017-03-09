@@ -106,7 +106,8 @@ class ElasticClient
             'index' => 'not_analyzed'
         ],
         'ip' => [
-            'type' => 'ip'
+            'type' => 'string',
+            'index' => 'not_analyzed'
         ],
         'os' => [
             'type' => 'string',
