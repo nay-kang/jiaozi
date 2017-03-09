@@ -232,7 +232,7 @@ return UUID;
  * Self Code
  */
 
-Jiaozi = function(){
+var Jiaozi = function(){
 	this.init();
 };
 Jiaozi.prototype = {
@@ -256,10 +256,10 @@ Jiaozi.prototype = {
 		cookieStore.set(COOKIE_KEY,uuid,{path:"/",expires:365,'domain':domain});
 
 		/*pid*/
-		pid = null;
-		scripts = document.querySelectorAll('script');
+		var pid = null;
+		var scripts = document.querySelectorAll('script');
 		for(i in scripts){
-			src = scripts[i].src;
+			var src = scripts[i].src;
 			if(src.search(baseHost)>-1){
 				var r = null;
 				if(r = src.match(/pid\=(\w+)&?/)){
@@ -279,7 +279,6 @@ Jiaozi.prototype = {
 		};
 	},
 	'paramsToUrl':function(params){
-		console.log(params);
 		var url = '';
 		for(var key in params){
 			if(url != ''){
@@ -290,7 +289,6 @@ Jiaozi.prototype = {
 		return url;
 	},
 	'send':function(type,data){
-		console.log(this);
 		data[this.info.cookieKey] = this.info.uuid;
 		data['pid'] = this.info.pid;
 		data['type'] = type;
@@ -313,7 +311,7 @@ Jiaozi.prototype = {
 	}
 };
 
-jz = new Jiaozi();
+var jz = new Jiaozi();
 
 window._JZ = {
 	"send":jz.send.bind(jz),
