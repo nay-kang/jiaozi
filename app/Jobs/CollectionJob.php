@@ -38,7 +38,13 @@ class CollectionJob extends Job{
             $result = array_merge($result,$this->getPageviewInfo($this->_data, $headers));
         }
         if($result['type'] == 'event'){
-            $result = array_merge($result,$this->getEventInfo($this->_data));
+            $r = $this->getEventInfo($this->_data);
+            if($r){
+                $result = array_merge($result,$r);
+            }else{
+                $this->log('request data parse failed', $this->_data);
+                return;
+            }
         }
         
         ElasticClient::getInstance()->save($result);
@@ -47,12 +53,6 @@ class CollectionJob extends Job{
     protected function getPageviewInfo(array $request,HeaderBag $headers){
         $result = [];
         $result['referer'] = array_get($request,'query.referer','');
-        
-        $result['url'] = array_get($request,'query.url', null);
-        
-        if (is_null($result['url'])) {
-            $result['url'] = $headers->get('referer', '');
-        }
         
         if(array_has($request,'query.utm_source')){
             $result['utm_source'] = array_get($request,'query.utm_source');
@@ -77,12 +77,21 @@ class CollectionJob extends Job{
     }
     
     protected function getEventInfo(array $request){
+        $value_number = array_get($request,'query.value_number', null);
+        $value = array_get($request,'query.value', '');
+        if(!is_numeric($value_number) && $value){
+            return false;
+        }
+        if(!is_numeric($value_number) && empty($value)){
+            $value = $value_number;
+            $value_number = null;
+        }
         $result = [
             'category' => array_get($request,'query.category', ''),
             'action' => array_get($request,'query.action', ''),
             'label' => array_get($request,'query.label', ''),
-            'value' => array_get($request,'query.value', ''),
-            'value_number' => array_get($request,'query.value_number', null)
+            'value' => $value,
+            'value_number' => $value_number,
         ];
         return $result;
     }
@@ -129,6 +138,13 @@ class CollectionJob extends Job{
         
         $userAgent = $headers->get('User-Agent');
         $ua = Util::parseUserAgent($userAgent);
+        
+        $url = array_get($request,'query.url', null);
+        
+        if (is_null($url)) {
+            $url = $headers->get('referer', '');
+        }
+        
         return array_merge($ua, [
             'uuid'          => $uuid,
             'ip'            => $request['ip'],
@@ -139,6 +155,7 @@ class CollectionJob extends Job{
             'profile_id'    => $pid,
             'profile_name'  => $profile_name,
             'country_code'  => $headers->get('CF_IPCOUNTRY'),
+            'url'           => $url
         ]);
     }
 }
