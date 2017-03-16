@@ -35,10 +35,10 @@ class CollectionJob extends Job{
             return;
         }
         if($result['type'] == 'pageview'){
-            $result = array_merge($result,$this->getPageviewInfo($this->_data, $headers));
+            $result = array_merge($result,$this->getPageviewInfo($result,$this->_data, $headers));
         }
         if($result['type'] == 'event'){
-            $r = $this->getEventInfo($this->_data);
+            $r = $this->getEventInfo($result,$this->_data);
             if($r){
                 $result = array_merge($result,$r);
             }else{
@@ -50,7 +50,7 @@ class CollectionJob extends Job{
         ElasticClient::getInstance()->save($result);
     }
     
-    protected function getPageviewInfo(array $request,HeaderBag $headers){
+    protected function getPageviewInfo(array $commonData,array $request,HeaderBag $headers){
         $result = [];
         $result['referer'] = array_get($request,'query.referer','');
         
@@ -68,7 +68,7 @@ class CollectionJob extends Job{
             // 判断referer和url是否是同一个host，不是则代表从其他地方跳转过来的
         } else {
             $r = parse_url($result['referer']);
-            $l = parse_url($result['url']);
+            $l = parse_url($commonData['url']);
             if (isset($l['host']) && $r['host'] !== $l['host']) {
                 $result['utm_source'] = $result['referer'];
             }
@@ -76,7 +76,7 @@ class CollectionJob extends Job{
         return $result;
     }
     
-    protected function getEventInfo(array $request){
+    protected function getEventInfo(array $commondData,array $request){
         $value_number = array_get($request,'query.value_number', null);
         $value = array_get($request,'query.value', '');
         if(!is_numeric($value_number) && $value){
