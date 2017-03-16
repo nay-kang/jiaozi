@@ -28,6 +28,14 @@ class ProfileConfig{
             'name' => 'JustFashionNow_Web'
         ],
         
+        'zpw31v76e40yxoe6'  => [
+            'name' => 'JustFashionNow_Android_App'
+        ],
+        
+        'v3w1yr78q7x0j5ze'  => [
+            'name' => 'JustFashionNow_IOS_App'
+        ]
+        
     ];
     
     public static function getConfig($profile_id,$key=null){
