@@ -31,7 +31,7 @@ class CollectionJob extends Job{
         $headers->add(array_get($this->_data, 'header',[]));
         
         if (! ($result = $this->getCommonData($this->_data,$headers))) {
-            $this->log('request data parse failed', $this->_data);
+            $this->log('request data parse common data failed', $this->_data);
             return;
         }
         if($result['type'] == 'pageview'){
@@ -43,7 +43,7 @@ class CollectionJob extends Job{
                 //$result = array_merge($result,$r);
                 $result['event'] = $r;
             }else{
-                $this->log('request data parse failed', $this->_data);
+                $this->log('request data parse event failed', $this->_data);
                 return;
             }
         }
@@ -83,10 +83,10 @@ class CollectionJob extends Job{
     protected function getEventInfo(array $commondData,array $request){
         $value_number = array_get($request,'query.value_number', null);
         $value = array_get($request,'query.value', '');
-        if(!is_numeric($value_number) && $value){
+        if($value_number && !is_numeric($value_number) && $value){
             return false;
         }
-        if(!is_numeric($value_number) && empty($value)){
+        if($value_number && !is_numeric($value_number) && empty($value)){
             $value = $value_number;
             $value_number = null;
         }
