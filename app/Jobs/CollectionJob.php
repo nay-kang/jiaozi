@@ -40,7 +40,8 @@ class CollectionJob extends Job{
         if($result['type'] == 'event'){
             $r = $this->getEventInfo($result,$this->_data);
             if($r){
-                $result = array_merge($result,$r);
+                //$result = array_merge($result,$r);
+                $result['event'] = $r;
             }else{
                 $this->log('request data parse failed', $this->_data);
                 return;
@@ -53,13 +54,16 @@ class CollectionJob extends Job{
     protected function getPageviewInfo(array $commonData,array $request,HeaderBag $headers){
         $result = [];
         $result['referer'] = array_get($request,'query.referer','');
-        
-        if(array_has($request,'query.utm_source')){
-            $result['utm_source'] = array_get($request,'query.utm_source');
-            $result['utm_medium'] = array_get($request,'query.utm_medium', null);
-            $result['utm_term'] = array_get($request,'query.utm_term', null);
-            $result['utm_content'] = array_get($request,'query.utm_content', null);
-            $result['utm_campaign'] = array_get($request,'query.utm_campaign', null);
+        $cur_url = parse_url($commonData['url']);
+        $query_str = array_get($cur_url,'query','');
+        $query = [];
+        parse_str($query_str,$query);
+        if(array_has($query,'utm_source')){
+            $result['utm_source'] = array_get($query,'utm_source');
+            $result['utm_medium'] = array_get($query,'utm_medium', null);
+            $result['utm_term'] = array_get($query,'utm_term', null);
+            $result['utm_content'] = array_get($query,'utm_content', null);
+            $result['utm_campaign'] = array_get($query,'utm_campaign', null);
         
             // referer为空，代表是direct直接来源
         } else if (empty($result['referer'])) {
@@ -68,9 +72,9 @@ class CollectionJob extends Job{
             // 判断referer和url是否是同一个host，不是则代表从其他地方跳转过来的
         } else {
             $r = parse_url($result['referer']);
-            $l = parse_url($commonData['url']);
-            if (isset($l['host']) && $r['host'] !== $l['host']) {
-                $result['utm_source'] = $result['referer'];
+            if (isset($cur_url['host']) && $r['host'] !== $cur_url['host']) {
+                $result['utm_source'] = $r['host'];
+                $result['utm_medium'] = 'referral';
             }
         }
         return $result;
@@ -85,6 +89,9 @@ class CollectionJob extends Job{
         if(!is_numeric($value_number) && empty($value)){
             $value = $value_number;
             $value_number = null;
+        }
+        if(is_numeric($value_number)){
+            $value_number = floatval($value_number);
         }
         $result = [
             'category' => array_get($request,'query.category', ''),
