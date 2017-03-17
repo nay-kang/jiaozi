@@ -90,9 +90,9 @@ Pod::Spec.new do |s|
   #  Not including the public_header_files will make all headers public.
   #
 
-  s.source_files  = "DumplingsTracker", "DumplingsTracker/**/*.{h,m}"
+  s.source_files  = "IOS/DumplingsTracker/DumplingsTracker", "IOS/DumplingsTracker/DumplingsTracker/**/*.{h,m}"
 
-  s.public_header_files = "DumplingsTracker/**/*.h"
+  s.public_header_files = "IOS/DumplingsTracker/DumplingsTracker/**/*.h"
 
 
   # ――― Resources ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
