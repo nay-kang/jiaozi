@@ -45,7 +45,7 @@
     if (!jsonString) {
         jsonString = @"";
     }
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://jiaozi.stylewe.com/collect_img.gif?_jiaozi_uid=%@&pid=%@&type=event&category=%@&value=%@",tracker.idfa,tracker.pid,eventName,jsonString]];
+    NSURL *url = [NSURL URLWithString:[[NSString stringWithFormat:@"https://jiaozi.stylewe.com/collect_img.gif?_jiaozi_uid=%@&pid=%@&type=event&category=%@&value=%@",tracker.idfa,tracker.pid,eventName,jsonString] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
     request.timeoutInterval = 20;
     NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:nil delegateQueue:[NSOperationQueue new]];
