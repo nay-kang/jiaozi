@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "DumplingsTracker"
-  s.version      = "1.0.0"
+  s.version      = "1.1.0"
   s.summary      = "JiaoZi Tracker."
 
   # This description is used to generate tags and improve search results.
@@ -86,7 +86,7 @@ Pod::Spec.new do |s|
 
   s.source_files  = "IOS/DumplingsTracker/DumplingsTracker", "IOS/DumplingsTracker/DumplingsTracker/**/*.{h,m}"
 
-  s.public_header_files = "IOS/DumplingsTracker/DumplingsTracker/**/*.h"
+  s.public_header_files = "IOS/DumplingsTracker/DumplingsTracker/**/DumplingsTracker.h"
 
 
   # ――― Resources ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
