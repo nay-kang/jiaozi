@@ -7,11 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B3AA3F71E7F79A1002D31E2 /* JSONKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B3AA3F51E7F79A1002D31E2 /* JSONKit.h */; };
+		9B3AA3F81E7F79A1002D31E2 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B3AA3F61E7F79A1002D31E2 /* JSONKit.m */; };
 		9B5985051E7A987A00FB003E /* DumplingsTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B5985031E7A987A00FB003E /* DumplingsTracker.h */; };
 		9B5985061E7A987A00FB003E /* DumplingsTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 9B5985041E7A987A00FB003E /* DumplingsTracker.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9B3AA3F51E7F79A1002D31E2 /* JSONKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONKit.h; sourceTree = "<group>"; };
+		9B3AA3F61E7F79A1002D31E2 /* JSONKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONKit.m; sourceTree = "<group>"; };
 		9B5984F81E7A986A00FB003E /* DumplingsTracker.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DumplingsTracker.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B5984FC1E7A986A00FB003E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9B5985031E7A987A00FB003E /* DumplingsTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DumplingsTracker.h; sourceTree = "<group>"; };
@@ -49,6 +53,8 @@
 			isa = PBXGroup;
 			children = (
 				9B5984FC1E7A986A00FB003E /* Info.plist */,
+				9B3AA3F51E7F79A1002D31E2 /* JSONKit.h */,
+				9B3AA3F61E7F79A1002D31E2 /* JSONKit.m */,
 				9B5985031E7A987A00FB003E /* DumplingsTracker.h */,
 				9B5985041E7A987A00FB003E /* DumplingsTracker.m */,
 			);
@@ -63,6 +69,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B5985051E7A987A00FB003E /* DumplingsTracker.h in Headers */,
+				9B3AA3F71E7F79A1002D31E2 /* JSONKit.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,6 +142,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B3AA3F81E7F79A1002D31E2 /* JSONKit.m in Sources */,
 				9B5985061E7A987A00FB003E /* DumplingsTracker.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -293,6 +301,7 @@
 				9B5985021E7A986A00FB003E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
