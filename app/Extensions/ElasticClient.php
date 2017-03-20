@@ -188,26 +188,31 @@ class ElasticClient
             'type' => 'string',
             'index' => 'not_analyzed'
         ],
-    
+        
         //Event Extra
-        'category' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
-        ],
-        'action' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
-        ],
-        'label' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
-        ],
-        'value' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
-        ],
-        'value_number' => [
-            'type' => 'double'
+        'event' => [
+            'properties' => [
+                'category' => [
+                    'type' => 'string',
+                    'index' => 'not_analyzed'
+                ],
+                'action' => [
+                    'type' => 'string',
+                    'index' => 'not_analyzed'
+                ],
+                'label' => [
+                    'type' => 'string',
+                    'index' => 'not_analyzed'
+                ],
+                'value' => [
+                    'type' => 'string',
+                    'index' => 'not_analyzed'
+                ],
+                'value_number' => [
+                    'type' => 'double'
+                ]
+            ]
         ]
+        
     ];
 }
