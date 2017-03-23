@@ -40,7 +40,7 @@
     NSMutableDictionary *datas = [[NSMutableDictionary alloc] initWithDictionary:parameters];
     [datas setObject:@([[NSDate date] timeIntervalSince1970]) forKey:@"event_time"];
     DumplingsTracker *tracker = [self sharedTracker];
-    NSString *jsonString = [parameters JSONString];
+    NSString *jsonString = [datas JSONString];
     if (!jsonString) {
         jsonString = @"";
     }
