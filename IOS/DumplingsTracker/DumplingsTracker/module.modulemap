@@ -1,4 +1,4 @@
-mework module DumplingsTracker {
+framework module DumplingsTracker {
     umbrella header "DumplingsTracker.h"
 
     export *
