@@ -1,2 +1,9 @@
 xcuserdata
 DumplingsTracker-*
+
+.buildpath
+.env
+.idea/
+.project
+.settings/
+vendor/
