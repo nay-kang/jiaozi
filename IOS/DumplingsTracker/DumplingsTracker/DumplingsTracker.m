@@ -7,6 +7,7 @@
 //
 
 #import "DumplingsTracker.h"
+#import "JSONKit.h"
 
 @interface DumplingsTracker ()
 
@@ -36,12 +37,10 @@
 
 +(void)eventWithName:(NSString *)eventName parameters:(NSDictionary *)parameters
 {
-    
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:parameters
-                                                       options:NSJSONWritingPrettyPrinted // Pass 0 if you don't care about the readability of the generated string
-                                                         error:nil];
+    NSMutableDictionary *datas = [[NSMutableDictionary alloc] initWithDictionary:parameters];
+    [datas setObject:@([[NSDate date] timeIntervalSince1970]) forKey:@"event_time"];
     DumplingsTracker *tracker = [self sharedTracker];
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    NSString *jsonString = [datas JSONString];
     if (!jsonString) {
         jsonString = @"";
     }
