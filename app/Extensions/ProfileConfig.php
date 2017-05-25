@@ -34,6 +34,18 @@ class ProfileConfig{
         
         'v3w1yr78q7x0j5ze'  => [
             'name' => 'JustFashionNow_IOS_App'
+        ],
+        
+        'wz9q1n71d7823e6j' => [
+            'name' => 'PopJulia_Web'
+        ],
+        
+        'e9n6d142972p3lzj' => [
+            'name' => 'PopJulia_Android_App'
+        ],
+        
+        'r1vpx07kz7k25ne3' => [
+            'name' => 'PopJulia_IOS_App'
         ]
         
     ];
