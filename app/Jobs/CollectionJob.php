@@ -53,7 +53,7 @@ class CollectionJob extends Job{
     
     protected function getPageviewInfo(array $commonData,array $request,HeaderBag $headers){
         $result = [];
-        $result['referer'] = array_get($request,'query.referer','');
+        $result['referer'] = trim(array_get($request,'query.referer',''));
         $cur_url = parse_url($commonData['url']);
         $query_str = array_get($cur_url,'query','');
         $query = [];
