@@ -236,6 +236,7 @@ var Jiaozi = function(){
 	this.init();
 };
 Jiaozi.prototype = {
+    '_config' : {},
 	'init':function(){
 		var COOKIE_KEY = '_jiaozi_uid';
 		var baseHost = "jiaozi.stylewe.com";
@@ -258,7 +259,7 @@ Jiaozi.prototype = {
 		/*pid*/
 		var pid = null;
 		var scripts = document.querySelectorAll('script');
-		for(i in scripts){
+		for(var i in scripts){
 			var src = scripts[i].src;
 			if(src.search(baseHost)>-1){
 				var r = null;
@@ -281,7 +282,7 @@ Jiaozi.prototype = {
 	'paramsToUrl':function(params){
 		var url = '';
 		for(var key in params){
-			if(url != ''){
+			if(url !== ''){
 				url += '&';
 			}
 			url += encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
@@ -292,6 +293,10 @@ Jiaozi.prototype = {
 		data[this.info.cookieKey] = this.info.uuid;
 		data['pid'] = this.info.pid;
 		data['type'] = type;
+		for(var item in this._config){
+		    data[item] = this._config[item];
+		}
+		data['_t'] = new Date().getTime();
 		
 		var url = this.info.host+"/collect_img.gif?"+this.paramsToUrl(data);
 		var img = window.document.createElement('img');
@@ -308,7 +313,10 @@ Jiaozi.prototype = {
 	},
 	'event':function(data){
 		this.send('event',data);
-	}
+	},
+	'set':function(key,val){
+	    this._config[key] = val;
+	} 
 };
 
 var jz = new Jiaozi();
@@ -317,6 +325,7 @@ window._JZ = {
 	"send":jz.send.bind(jz),
 	"pageview":jz.pageview.bind(jz),
 	"event":jz.event.bind(jz),
+	"set":jz.set.bind(jz),
 };
 
 })();
