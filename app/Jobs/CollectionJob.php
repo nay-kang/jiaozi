@@ -72,9 +72,12 @@ class CollectionJob extends Job{
             // 判断referer和url是否是同一个host，不是则代表从其他地方跳转过来的
         } else {
             $r = parse_url($result['referer']);
-            if (isset($cur_url['host']) && $r['host'] !== $cur_url['host']) {
+            if (!empty($r['host']) && isset($cur_url['host']) && $r['host'] !== $cur_url['host']) {
                 $result['utm_source'] = $r['host'];
                 $result['utm_medium'] = 'referral';
+            }else{
+                $result['utm_source'] = $result['referer'];
+                $result['utm_medium'] = 'error_referral';
             }
         }
         return $result;
