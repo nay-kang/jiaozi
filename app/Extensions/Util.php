@@ -3,7 +3,6 @@ namespace App\Extensions;
 
 use DeviceDetector\Parser\Device\DeviceParserAbstract;
 use DeviceDetector\DeviceDetector;
-use App\Extensions\DeviceDetectorRedisCache;
 
 class Util{
     
@@ -11,26 +10,11 @@ class Util{
     /**
      * 分析user-agent
      *
-     * @param unknown $userAgent
-     * @return unknown[]|string[]
+     * @param string $userAgent
+     * @return string[]
      */
     public static function parseUserAgent($userAgent)
     {
-        /*
-         * Custom User-Agent:
-         * StyleWeShopping/1.2.3 Android/5.1.0 (GALAXY S5)
-         * StyleWeShopping/1.2.3 iOS/9.3.4 (iPhone 6s)
-         */
-        if (preg_match('/StyleWeShopping\/([0-9\.]+) (Android|iOS)\/([0-9\.]+) \((.*)\)/', $userAgent, $matches)) {
-            return [
-                'os' => $matches[2],
-                'os_version' => $matches[3],
-                'device' => $matches[4],
-                'client_type' => 'mobile app',
-                'client_name' => 'StyleWeShopping',
-                'client_version' => $matches[1]
-            ];
-        }
     
         if(static::$_parser==null){
             // set version style x.y.z

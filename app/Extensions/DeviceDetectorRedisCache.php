@@ -2,7 +2,7 @@
 namespace App\Extensions;
 
 use DeviceDetector\Cache\Cache as DDCache;
-use Cache;
+use Illuminate\Support\Facades\Cache;
 
 class DeviceDetectorRedisCache implements DDCache
 {
