@@ -93,7 +93,7 @@ class ElasticClient
      */
     protected function getIndex($suffix)
     {
-        return env('ELASTIC_INDEX', 'stylewe') . '-' . $suffix;
+        return env('ELASTIC_INDEX', 'collector') . '-' . $suffix;
     }
     
     private static $commonMapping = [

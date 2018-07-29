@@ -119,7 +119,7 @@ class CollectionJob extends Job{
      * os_version 操作系统版本
      * device Desktop ipad
      * client_type browser mobile app
-     * client_name Chrome Facebook Stylewe-IOS
+     * client_name Chrome Facebook App-IOS
      * client_version 客户端版本
      *
      * @param array $request
