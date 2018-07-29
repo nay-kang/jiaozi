@@ -89,6 +89,8 @@ return [
     */
 
     'redis' => [
+        
+        'client' => 'phpredis',
 
         'cluster' => env('REDIS_CLUSTER', false),
 

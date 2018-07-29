@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__.'/../vendor/autoload.php';
 
 try {
@@ -26,8 +25,7 @@ $app = new Laravel\Lumen\Application(
 $app->withFacades();
 
 // $app->withEloquent();
-
-//用于配置redis
+// for app that read database config without load eloquent
 $app->configure('database');
 
 /*
@@ -84,7 +82,6 @@ $app->singleton(
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
-
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
@@ -97,8 +94,10 @@ $app->register(Illuminate\Redis\RedisServiceProvider::class);
 |
 */
 
-$app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
-    require __DIR__.'/../app/Http/routes.php';
+$app->router->group([
+    'namespace' => 'App\Http\Controllers',
+], function ($router) {
+    require __DIR__.'/../routes/web.php';
 });
 
 return $app;

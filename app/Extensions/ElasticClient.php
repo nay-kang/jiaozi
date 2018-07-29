@@ -102,111 +102,86 @@ class ElasticClient
             'format' => 'epoch_second'
         ],
         'uuid' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'ip' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'os' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'os_version' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'device' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'client_type' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'client_name' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'client_version' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'user_agent' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'user_id'   => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'type'  => [
-            'type' => 'string',
-            'index' => 'not_analyzed',
+            'type' => 'keyword',
         ],
         'profile_id' => [
-            'type' => 'string',
-            'index' => 'not_analyzed',
+            'type' => 'keyword',
         ],
         'profile_name' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'country_code' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
     
     
         //Pageview Extra
         'referer' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'url' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'utm_source' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'utm_medium' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'utm_term' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'utm_content' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         'utm_campaign' => [
-            'type' => 'string',
-            'index' => 'not_analyzed'
+            'type' => 'keyword',
         ],
         
         //Event Extra
         'event' => [
             'properties' => [
                 'category' => [
-                    'type' => 'string',
-                    'index' => 'not_analyzed'
+                    'type' => 'keyword',
                 ],
                 'action' => [
-                    'type' => 'string',
-                    'index' => 'not_analyzed'
+                    'type' => 'keyword',
                 ],
                 'label' => [
-                    'type' => 'string',
-                    'index' => 'not_analyzed'
+                    'type' => 'keyword',
                 ],
                 'value' => [
-                    'type' => 'string',
-                    'index' => 'not_analyzed'
+                    'type' => 'keyword',
                 ],
                 'value_number' => [
                     'type' => 'double'

@@ -11,6 +11,6 @@
  * |
  */
 
-$app->get('/collect_img.gif','CollectionController@collect');
+$router->get('/collect_img.gif','CollectionController@collect');
 
-$app->get('/blank', 'CollectionController@blank');
+$router->get('/blank', 'CollectionController@blank');
