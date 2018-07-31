@@ -27,6 +27,7 @@ $app->withFacades();
 // $app->withEloquent();
 // for app that read database config without load eloquent
 $app->configure('database');
+$app->configure('profile');
 
 /*
 |--------------------------------------------------------------------------

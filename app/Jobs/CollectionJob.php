@@ -3,8 +3,8 @@ namespace App\Jobs;
 
 use Symfony\Component\HttpFoundation\HeaderBag;
 use App\Extensions\ElasticClient;
-use App\Extensions\ProfileConfig;
 use App\Extensions\Util;
+use Illuminate\Support\Facades\Log;
 
 class CollectionJob extends Job{
     
@@ -146,7 +146,7 @@ class CollectionJob extends Job{
             return false;
         }
         
-        $profile_name = ProfileConfig::getConfig($pid,'name');
+        $profile_name = config('profile.'.$pid.'.name');
         
         $userAgent = $headers->get('User-Agent');
         $ua = Util::parseUserAgent($userAgent);

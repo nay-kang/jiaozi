@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * You can generate project id as you wish.
+ * below is a example for generate project_id
+ * Client ID generated using Hashids
+ * salt => jiaozi_reborn
+ * padding => 16
+ * seed => abcdefghijklmnopqrstuvwxyz0123456789
+ */
+return [
+    // 1
+    'jn321grq8rwvp5q6' => [
+        'name' => 'example_app_1'
+    ]
+];
+?>
