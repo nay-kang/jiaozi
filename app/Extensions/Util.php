@@ -15,7 +15,31 @@ class Util{
      */
     public static function parseUserAgent($userAgent)
     {
-    
+        
+        // user-agent app/1.2.3 (iPhone 7 Plus;iOS 11.2.6) Alamofire/4.2.0
+        if(preg_match('/^(.*)\/(.*) \((.*);(.*) (.*)\) (.*)\/(.*)$/', $userAgent,$matches)){
+            return [
+                'os' => $matches[4],
+                'os_version' => $matches[5],
+                'device' => $matches[3],
+                'client_type' => 'mobile app',
+                'client_name' => $matches[1],
+                'client_version' => $matches[2]
+            ];
+        }
+        
+        // user-agent app/1.2.3 iOS/11.2.6 (iPhone 7 Plus)
+        if(preg_match('/^(.*)\/(.*) (.*)\/(.*) \((.*)\)$/', $userAgent,$matches)){
+            return [
+                'os' => $matches[3],
+                'os_version' => $matches[4],
+                'device' => $matches[5],
+                'client_type' => 'mobile app',
+                'client_name' => $matches[1],
+                'client_version' => $matches[2],
+            ];
+        }
+        
         if(static::$_parser==null){
             // set version style x.y.z
             DeviceParserAbstract::setVersionTruncation(DeviceParserAbstract::VERSION_TRUNCATION_PATCH);
