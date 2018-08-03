@@ -32,6 +32,8 @@ class ElasticClient
      */
     public function save(array $data)
     {
+        //if timezone is not UTC.the data in es will put in wrong index 
+        date_default_timezone_set('UTC');
         $date = (new \DateTime())->setTimestamp($data['timestamp'])->format('Y.m.d');
         $index = $this->getIndex($date);
         $this->checkIndex($index);

@@ -98,6 +98,7 @@ class CollectionJob extends Job{
         if(is_numeric($value_number)){
             $value_number = floatval($value_number);
         }
+        
         $result = [
             'category' => array_get($request,'query.category', ''),
             'action' => array_get($request,'query.action', ''),
@@ -105,6 +106,9 @@ class CollectionJob extends Job{
             'value' => $value,
             'value_number' => $value_number,
         ];
+        if($json_value = json_decode($value,true)){
+            $result['value_json'] = $json_value;
+        }
         return $result;
     }
     /**
@@ -157,17 +161,22 @@ class CollectionJob extends Job{
             $url = $headers->get('referer', '');
         }
         
-        return array_merge($ua, [
+        $data = array_merge($ua, [
             'uuid'          => $uuid,
             'ip'            => $request['ip'],
             'timestamp'     => $request['timestamp'],
             'user_agent'    => $userAgent,
-            'user_id'       => array_get($request,'query.user_id',null),//site user id
+            'user_id'       => array_get($request,'query.user_id',null),
             'type'          => $type,
             'profile_id'    => $pid,
             'profile_name'  => $profile_name,
             'country_code'  => $headers->get('CF_IPCOUNTRY'),
             'url'           => $url
         ]);
+        if(empty($data['user_id'])){
+            $data['user_id'] = null;
+        }
+        return $data;
     }
+    
 }
