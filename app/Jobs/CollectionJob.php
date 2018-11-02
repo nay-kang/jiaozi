@@ -176,6 +176,16 @@ class CollectionJob extends Job{
         if(empty($data['user_id'])){
             $data['user_id'] = null;
         }
+        $exp_var = array_get($request,'query.exp_var','');
+        $this->log("exp_var", $request);
+        if(preg_match("/([\d\w]+)\:([-\d]+)/", $exp_var,$matches)){
+            $data['experiments'] = [[
+                    'id' => $matches[1],
+                    'variation' => $matches[2]
+                ]
+            ];
+        }
+        $this->log("data",$data);
         return $data;
     }
     

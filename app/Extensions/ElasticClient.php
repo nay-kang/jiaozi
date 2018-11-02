@@ -44,6 +44,19 @@ class ElasticClient
             'body' => $data
         ]);
     }
+    
+    /**
+     * Simple Search Wrap
+     * @param array $esQuery
+     */
+    public function search(array $query){
+        $index = $this->getIndex('*');
+        return $this->esClient->search([
+            'index' => $index,
+            'type' => self::INDEX_TYPE_NAME,
+            'body' => $query,
+        ]);
+    }
 
     private $_index_mapping = [];
     public function checkIndex($index){
@@ -187,6 +200,17 @@ class ElasticClient
                 ],
                 'value_number' => [
                     'type' => 'double'
+                ]
+            ]
+        ],
+        'experiments' => [
+            'type' => 'nested',
+            'properties' => [
+                'id' => [
+                    'type' => 'keyword',
+                ],
+                'variation' => [
+                    'type' => 'integer'
                 ]
             ]
         ]

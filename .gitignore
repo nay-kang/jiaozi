@@ -21,3 +21,7 @@ Homestead.json
 .rocketeer/
 
 config/profile.php
+
+#eclipse
+.dbeaver-data-sources.xml
+Scripts/
