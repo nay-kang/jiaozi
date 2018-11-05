@@ -177,7 +177,7 @@ class CollectionJob extends Job{
             $data['user_id'] = null;
         }
         $exp_var = array_get($request,'query.exp_var','');
-        $this->log("exp_var", $request);
+        
         if(preg_match("/([\d\w]+)\:([-\d]+)/", $exp_var,$matches)){
             $data['experiments'] = [[
                     'id' => $matches[1],
@@ -185,7 +185,7 @@ class CollectionJob extends Job{
                 ]
             ];
         }
-        $this->log("data",$data);
+        
         return $data;
     }
     

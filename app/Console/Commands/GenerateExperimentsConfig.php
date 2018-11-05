@@ -24,7 +24,6 @@ class GenerateExperimentsConfig extends Command{
                     'traffic_in_exp' => $new_distrib['traffic_in_exp'],
                     'variations' => $new_distrib['variations']
                 ];
-                print_r($exp_stat);
             }
             $path = base_path('public/experiments/');
             if(!file_exists($path)){
@@ -130,7 +129,6 @@ class GenerateExperimentsConfig extends Command{
                     ]
                 ]
             ];
-            print_r(json_encode($new_query));
             $res = ElasticClient::getInstance()->search($new_query);
             $variations[$variation] = $res['aggregations']['uuids_count']['value'];
         }

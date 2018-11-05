@@ -11,7 +11,19 @@
 return [
     // 1
     'jn321grq8rwvp5q6' => [
-        'name' => 'example_app_1'
+        'name' => 'example_app_1',
+        'experiments' => [
+            'vo71lry3cgz0egnx' => [
+                'name' => '实验名称',
+                'traffic_in_exp' => 0.2,
+                'start' => '2018-10-10 00:00:00',
+                'variations' => 2,
+                'filter' => [
+                    'os' => 'Android',
+                    'client_version' => '1.0',
+                ]
+            ]
+        ]
     ]
 ];
 ?>
