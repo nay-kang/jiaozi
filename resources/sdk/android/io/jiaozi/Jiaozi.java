@@ -323,7 +323,7 @@ public class Jiaozi {
                         Log.e(ex.getMessage(), ex.toString());
                         callback.onResult(false, null);
                     }
-                    if(response.code()>=499){
+                    if(response.code()>=400){
                         callback.onResult(false, null);
                     }else{
                         callback.onResult(true, json);
