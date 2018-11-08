@@ -4,7 +4,7 @@ example code
 
 ```java
 //init with current activity
-Jiaozi.init(this);
+Jiaozi.init(this,"http://example.com");
 
 //config with profile id and device uuid
 Jiaozi.config(PROFILE_ID,DEVICE_UUID);

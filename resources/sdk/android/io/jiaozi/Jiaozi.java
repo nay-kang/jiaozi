@@ -23,12 +23,12 @@ import okhttp3.Response;
 
 public class Jiaozi {
 
-    private void Jiaozi() {
+    private Jiaozi() {
     }
 
     private static final String K_APPLICATION = "JIAOZI_SDK";
     private static Context context;
-    private static String endPoint = "10.15.20.246";
+    private static String domain = null;
     private static String current_exp_id = null;
 
     /**
@@ -36,8 +36,9 @@ public class Jiaozi {
      *
      * @param context
      */
-    public static void init(@NonNull Context context) {
+    public static void init(@NonNull Context context,@NonNull String domain) {
         Jiaozi.context = context.getApplicationContext();
+        Jiaozi.domain = domain;
     }
 
     /**
@@ -126,7 +127,7 @@ public class Jiaozi {
             public void onResult(boolean success, Object data) {
                 //request error
                 if (!success) {
-                    callback.onResult(false, -1);
+                    callback.onResult(false, null);
                     return;
                 }
 
@@ -137,15 +138,22 @@ public class Jiaozi {
                     for (int i = 0; i < experiments.length(); i++) {
                         experiment = experiments.getJSONObject(i);
                         String exp_id = experiment.getString("experiment_id");
-                        if (exp_id.equals(experiment_id)) {
-                            JSONObject filter = experiment.getJSONObject("filter");
-                            if ("Android".equalsIgnoreCase(filter.getString("os"))
-                                    && getAppVersion().equalsIgnoreCase(filter.getString("client_version"))) {
-                                break;
-                            }
-
+                        if (!exp_id.equals(experiment_id)) {
+                            experiment = null;
+                            continue;
                         }
-                        experiment = null;
+                        JSONObject filter = experiment.getJSONObject("filter");
+
+                        if(filter.has("os") && !"Android".equalsIgnoreCase(filter.getString("os"))){
+                            experiment = null;
+                            break;
+                        }
+                        if (filter.has("client_version")
+                                && !getAppVersion().equalsIgnoreCase(filter.getString("client_version"))) {
+                            experiment = null;
+                            break;
+                        }
+                        break;
                     }
 
                     String variation_key = getVariationKey(experiment_id);
@@ -188,7 +196,7 @@ public class Jiaozi {
 
                 } catch (Exception ex) {
                     Log.e(ex.getMessage(), ex.toString());
-                    callback.onResult(false, -1);
+                    callback.onResult(false, null);
                 }
 
             }
@@ -269,10 +277,8 @@ public class Jiaozi {
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
         }
-        HttpUrl.Builder url = new HttpUrl.Builder()
-                .scheme("http")
-                .host(Jiaozi.endPoint)
-                .port(8080)
+
+        HttpUrl.Builder url = HttpUrl.parse(domain).newBuilder()
                 .addPathSegments(path);
         if (params != null) {
             for (Map.Entry<String, String> entry : params.entrySet()) {
@@ -317,7 +323,12 @@ public class Jiaozi {
                         Log.e(ex.getMessage(), ex.toString());
                         callback.onResult(false, null);
                     }
-                    callback.onResult(true, json);
+                    if(response.code()>=499){
+                        callback.onResult(false, null);
+                    }else{
+                        callback.onResult(true, json);
+                    }
+
                 }
 
             }
