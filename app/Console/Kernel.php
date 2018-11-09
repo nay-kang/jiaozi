@@ -23,5 +23,7 @@ class Kernel extends ConsoleKernel
      * @return void
      */
     protected function schedule(Schedule $schedule)
-    {}
+    {
+        $schedule->command('')->cron('13 */6 * * *');
+    }
 }

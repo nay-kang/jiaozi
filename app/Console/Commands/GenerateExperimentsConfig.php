@@ -15,6 +15,11 @@ class GenerateExperimentsConfig extends Command{
         foreach($profiles as $profile_id=>$profile){
             $exp_distributes = [];
             foreach(array_get($profile,'experiments',[]) as $exp_id=>$experiment){
+                $start_time = \DateTime::createFromFormat("Y-m-d H:i:s", $experiment['start']);
+                $now = new \DateTime();
+                if($now<$start_time){
+                    continue;
+                }
                 $exp_stat = $this->getExpStat($profile_id, $exp_id, $experiment);
                 $new_distrib = $this->rebalance($experiment, $exp_stat);
                 $exp_distributes[] = [
