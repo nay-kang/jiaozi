@@ -319,6 +319,7 @@ public class Jiaozi {
                     String json = null;
                     try {
                         json = response.body().string();
+                        response.body().close();
                     } catch (Exception ex) {
                         Log.e(ex.getMessage(), ex.toString());
                         callback.onResult(false, null);
@@ -341,8 +342,7 @@ public class Jiaozi {
         if (userAgent == null) {
             try {
                 String packageName = context.getPackageName();
-                String appName = packageName.substring(packageName.lastIndexOf('.') + 1);
-                userAgent = String.format("%s/%s Android/%s (%s)", appName, getAppVersion(), Build.VERSION.RELEASE, Build.MODEL);
+                userAgent = String.format("%s/%s Android/%s (%s)", packageName, getAppVersion(), Build.VERSION.RELEASE, Build.MODEL);
             } catch (Exception ex) {
                 Log.e(ex.getMessage(), ex.toString());
                 userAgent = "unknown agent";
