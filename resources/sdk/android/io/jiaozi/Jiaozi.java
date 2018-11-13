@@ -167,7 +167,12 @@ public class Jiaozi {
                     //check if already assign variation
                     String savedVariation = getConfig(variation_key);
                     if (savedVariation != null && !savedVariation.isEmpty()) {
-                        callback.onResult(true, savedVariation);
+                        try{
+                            int savedVariationInt = Integer.parseInt(savedVariation);
+                            callback.onResult(true, savedVariationInt);
+                        }catch(Exception ex){
+                            callback.onResult(false,null);
+                        }
                         return;
                     }
 
