@@ -62,7 +62,17 @@ class ElasticClient
     public function checkIndex($index){
         if(!array_get($this->_index_mapping,$index)){
             $this->updateMapping($index, [
-                'properties' => static::$commonMapping 
+                'properties' => static::$commonMapping,
+                "dynamic_templates" => [
+                    [
+                        "strings" => [
+                            "match_mapping_type" => "string",
+                            "mapping" => [
+                                "type" => "keyword"
+                            ]
+                        ]
+                    ]
+                ]
             ]);
             $this->_index_mapping[$index] = true;
         }
@@ -85,7 +95,11 @@ class ElasticClient
         // 创建索引
         if (! isset($cr_mapping[$index])) {
             $this->esClient->indices()->create([
-                'index' => $index
+                'index' => $index,
+                'body' => [
+                        "number_of_shards" => 3,
+                        "number_of_replicas" => 0
+                ]
             ]);
             $updateMapping = true;
         }
@@ -99,7 +113,7 @@ class ElasticClient
             
             $params['body']['data'] = $mapping;
             
-            return $this->esClient->indices()->putMapping($params);
+            $this->esClient->indices()->putMapping($params);
         }
     }
 
