@@ -3,23 +3,19 @@ package io.jiaozi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.util.Log;
 import android.support.annotation.NonNull;
-
+import android.util.Log;
+import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.net.ssl.*;
 import java.io.IOException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.Call;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class Jiaozi {
 
@@ -30,13 +26,14 @@ public class Jiaozi {
     private static Context context;
     private static String domain = null;
     private static String current_exp_id = null;
+    private static Map<String, String> _config = new HashMap<>();
 
     /**
      * Init Tracker with current context
      *
      * @param context
      */
-    public static void init(@NonNull Context context,@NonNull String domain) {
+    public static void init(@NonNull Context context, @NonNull String domain) {
         Jiaozi.context = context.getApplicationContext();
         Jiaozi.domain = domain;
     }
@@ -144,7 +141,7 @@ public class Jiaozi {
                         }
                         JSONObject filter = experiment.getJSONObject("filter");
 
-                        if(filter.has("os") && !"Android".equalsIgnoreCase(filter.getString("os"))){
+                        if (filter.has("os") && !"Android".equalsIgnoreCase(filter.getString("os"))) {
                             experiment = null;
                             break;
                         }
@@ -167,11 +164,11 @@ public class Jiaozi {
                     //check if already assign variation
                     String savedVariation = getConfig(variation_key);
                     if (savedVariation != null && !savedVariation.isEmpty()) {
-                        try{
+                        try {
                             int savedVariationInt = Integer.parseInt(savedVariation);
                             callback.onResult(true, savedVariationInt);
-                        }catch(Exception ex){
-                            callback.onResult(false,null);
+                        } catch (Exception ex) {
+                            callback.onResult(false, null);
                         }
                         return;
                     }
@@ -200,7 +197,7 @@ public class Jiaozi {
                     }
 
                 } catch (Exception ex) {
-                    Log.e(ex.getMessage(), ex.toString());
+                    Log.e(K_APPLICATION, ex.getMessage(), ex);
                     callback.onResult(false, null);
                 }
 
@@ -234,8 +231,6 @@ public class Jiaozi {
 
     /**
      * Get previous Device UUID or generate new if empty
-     *
-     *
      */
     private static String getUUID() {
         String uuid = getConfig("uuid");
@@ -246,18 +241,30 @@ public class Jiaozi {
     }
 
     private static void saveConfig(String key, String value) {
+        if (value == null || value.isEmpty()) {
+            return;
+        }
         SharedPreferences sp = context.getSharedPreferences(K_APPLICATION, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString(key, value);
         editor.apply();
+        _config.put(key, value);
     }
 
     protected static String getConfig(String key) {
+        if (_config.containsKey(key)) {
+            return _config.get(key);
+        }
         SharedPreferences sp = context.getSharedPreferences(K_APPLICATION, Context.MODE_PRIVATE);
-        return sp.getString(key, null);
+        String value = sp.getString(key, null);
+        if(value!=null){
+            _config.put(key, value);
+        }
+        return value;
     }
 
     private static void removeConfig(String key) {
+        _config.remove(key);
         SharedPreferences sp = context.getSharedPreferences(K_APPLICATION, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.remove(key);
@@ -274,12 +281,53 @@ public class Jiaozi {
      * @param params   url parameters after question mark
      * @param callback null if no need callback
      */
-    protected static void request(String path, Map<String, String> params, final Callback callback) {
+    protected synchronized static void request(String path, Map<String, String> params, final Callback callback) {
+
         if (Jiaozi.okhttpClient == null) {
-            Jiaozi.okhttpClient = new OkHttpClient.Builder()
-                    .connectTimeout(10, TimeUnit.SECONDS)
-                    .writeTimeout(10, TimeUnit.SECONDS)
-                    .readTimeout(60, TimeUnit.SECONDS)
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            //Turn off ssl verify
+            try {
+                // Create a trust manager that does not validate certificate chains
+                final TrustManager[] trustAllCerts = new TrustManager[]{
+                        new X509TrustManager() {
+                            @Override
+                            public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                                    throws CertificateException {
+                            }
+
+                            @Override
+                            public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                                    throws CertificateException {
+                            }
+
+                            @Override
+                            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                                return new java.security.cert.X509Certificate[]{};
+                            }
+                        }
+                };
+
+                // Install the all-trusting trust manager
+                final SSLContext sslContext = SSLContext.getInstance("SSL");
+                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+                // Create an ssl socket factory with our all-trusting manager
+                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+                builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
+                builder.hostnameVerifier(new HostnameVerifier() {
+                    @Override
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                });
+            } catch (Exception ex) {
+                Log.e(K_APPLICATION, ex.getMessage(), ex);
+            }
+
+            Jiaozi.okhttpClient = builder
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .writeTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
                     .build();
         }
 
@@ -304,7 +352,7 @@ public class Jiaozi {
         }
 
 
-        Request request = new Request
+        final Request request = new Request
                 .Builder()
                 .url(url.build())
                 .header("user-agent", getUserAgent())
@@ -312,29 +360,29 @@ public class Jiaozi {
         okhttpClient.newCall(request).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                Log.e(K_APPLICATION, "request error:" + request.url().toString(), e);
                 if (callback != null) {
-                    Log.e(Jiaozi.class.getName(), "request error:" + e.getMessage());
                     callback.onResult(false, null);
                 }
             }
 
             @Override
             public void onResponse(Call call, Response response) {
+                Log.i(K_APPLICATION, "request finished:" + request.url().toString());
                 if (callback != null) {
                     String json = null;
                     try {
                         json = response.body().string();
                         response.body().close();
                     } catch (Exception ex) {
-                        Log.e(ex.getMessage(), ex.toString());
+                        Log.e(K_APPLICATION, ex.getMessage(), ex);
                         callback.onResult(false, null);
                     }
-                    if(response.code()>=400){
+                    if (response.code() >= 400) {
                         callback.onResult(false, null);
-                    }else{
+                    } else {
                         callback.onResult(true, json);
                     }
-
                 }
 
             }
@@ -349,7 +397,7 @@ public class Jiaozi {
                 String packageName = context.getPackageName();
                 userAgent = String.format("%s/%s Android/%s (%s)", packageName, getAppVersion(), Build.VERSION.RELEASE, Build.MODEL);
             } catch (Exception ex) {
-                Log.e(ex.getMessage(), ex.toString());
+                Log.e(K_APPLICATION, ex.getMessage(), ex);
                 userAgent = "unknown agent";
             }
         }
@@ -361,7 +409,7 @@ public class Jiaozi {
             return context.getPackageManager().
                     getPackageInfo(context.getPackageName(), 0).versionName;
         } catch (Exception ex) {
-            Log.e(ex.getMessage(), ex.toString());
+            Log.e(K_APPLICATION, ex.getMessage(), ex);
             return "-1.-1.-1";
         }
 
