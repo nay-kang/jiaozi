@@ -24,6 +24,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('')->cron('13 */6 * * *');
+        $schedule->command('jiaozi:generate-experiments-config')->cron('13 */6 * * *');
     }
 }
