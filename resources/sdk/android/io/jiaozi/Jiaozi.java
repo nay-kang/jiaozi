@@ -9,9 +9,12 @@ import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.net.ssl.*;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.security.cert.CertificateException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -31,7 +34,7 @@ public class Jiaozi {
     /**
      * Init Tracker with current context
      *
-     * @param context
+     * @param context application context
      */
     public static void init(@NonNull Context context, @NonNull String domain) {
         Jiaozi.context = context.getApplicationContext();
@@ -42,7 +45,7 @@ public class Jiaozi {
      * Set tracker profile_id.
      * Please contact Jiaozi provider for this id
      *
-     * @param profile_id
+     * @param profile_id jiaozi profile id
      */
     public static void config(String profile_id) {
         String uuid = getUUID();
@@ -257,7 +260,7 @@ public class Jiaozi {
         }
         SharedPreferences sp = context.getSharedPreferences(K_APPLICATION, Context.MODE_PRIVATE);
         String value = sp.getString(key, null);
-        if(value!=null){
+        if (value != null) {
             _config.put(key, value);
         }
         return value;
@@ -285,44 +288,6 @@ public class Jiaozi {
 
         if (Jiaozi.okhttpClient == null) {
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            //Turn off ssl verify
-            try {
-                // Create a trust manager that does not validate certificate chains
-                final TrustManager[] trustAllCerts = new TrustManager[]{
-                        new X509TrustManager() {
-                            @Override
-                            public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
-                                    throws CertificateException {
-                            }
-
-                            @Override
-                            public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
-                                    throws CertificateException {
-                            }
-
-                            @Override
-                            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                                return new java.security.cert.X509Certificate[]{};
-                            }
-                        }
-                };
-
-                // Install the all-trusting trust manager
-                final SSLContext sslContext = SSLContext.getInstance("SSL");
-                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-                // Create an ssl socket factory with our all-trusting manager
-                final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-                builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-                builder.hostnameVerifier(new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String hostname, SSLSession session) {
-                        return true;
-                    }
-                });
-            } catch (Exception ex) {
-                Log.e(K_APPLICATION, ex.getMessage(), ex);
-            }
 
             Jiaozi.okhttpClient = builder
                     .connectTimeout(15, TimeUnit.SECONDS)
@@ -357,10 +322,12 @@ public class Jiaozi {
                 .url(url.build())
                 .header("user-agent", getUserAgent())
                 .build();
+
         okhttpClient.newCall(request).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e(K_APPLICATION, "request error:" + request.url().toString(), e);
+                _errorDebug("onFailure url:" + request.url().toString() + " exception:" + e);
                 if (callback != null) {
                     callback.onResult(false, null);
                 }
@@ -370,23 +337,41 @@ public class Jiaozi {
             public void onResponse(Call call, Response response) {
                 Log.i(K_APPLICATION, "request finished:" + request.url().toString());
                 if (callback != null) {
-                    String json = null;
+                    String response_body = null;
                     try {
-                        json = response.body().string();
+                        response_body = response.body().string();
                         response.body().close();
                     } catch (Exception ex) {
                         Log.e(K_APPLICATION, ex.getMessage(), ex);
+                        _errorDebug("get response body error url:" + request.url() + " exception:" + ex);
                         callback.onResult(false, null);
                     }
                     if (response.code() >= 400) {
+                        _errorDebug("response status code wrong url:" + request.url() + " code:" + response.code());
                         callback.onResult(false, null);
                     } else {
-                        callback.onResult(true, json);
+                        callback.onResult(true, response_body);
                     }
                 }
 
             }
         });
+    }
+
+    private static void _errorDebug(String errMessage) {
+        try {
+            StringBuilder sb = new StringBuilder("https://jiaozi-error.codeedu.net/");
+            sb.append("?error=");
+            sb.append(URLEncoder.encode(errMessage, "utf-8"));
+            URL url = new URL(sb.toString());
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+            in.close();
+            urlConnection.disconnect();
+        } catch (Exception ex) {
+            Log.e(K_APPLICATION, "send error error!", ex);
+        }
+
     }
 
     private static String userAgent = null;
