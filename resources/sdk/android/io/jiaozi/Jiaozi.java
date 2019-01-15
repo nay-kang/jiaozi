@@ -290,9 +290,11 @@ public class Jiaozi {
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
             Jiaozi.okhttpClient = builder
-                    .connectTimeout(15, TimeUnit.SECONDS)
-                    .writeTimeout(15, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .writeTimeout(5, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .retryOnConnectionFailure(true)
+                    .addInterceptor(new RetryInterceptor())
                     .build();
         }
 
@@ -327,7 +329,13 @@ public class Jiaozi {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e(K_APPLICATION, "request error:" + request.url().toString(), e);
-                _errorDebug("onFailure url:" + request.url().toString() + " exception:" + e);
+                String cause = "";
+                try{
+                    cause = e.getCause().toString();
+                }catch(Exception get_e){
+
+                }
+                _errorDebug("onFailure url:" + request.url().toString() + " exception:" + e+" ; cause:"+cause);
                 if (callback != null) {
                     callback.onResult(false, null);
                 }
@@ -404,5 +412,43 @@ public class Jiaozi {
         return "exp." + experiment_id + ".var";
     }
 
+}
+
+/**
+ * Retry request after IOException
+ */
+class RetryInterceptor implements Interceptor{
+
+    //max request times
+    public static final int MAX_RETRY = 3;
+    //sleep after failed request
+    public static final long REQUEST_GAP = 30_000;
+
+    public static final String TAG = "RetryInterceptor";
+
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+
+        IOException exception = null;
+        for(int i=0;i<MAX_RETRY;i++){
+            exception = null;
+            try{
+                Response response = chain.proceed(chain.request());
+                return response;
+            }catch(IOException e){
+                exception = e;
+                Log.e(TAG,"request failed:"+i,e);
+            }
+
+            //sleep after last failed request
+            if(i+1==MAX_RETRY) continue;
+            try{
+                Thread.sleep(REQUEST_GAP*(i+1));
+            }catch (InterruptedException e){
+                Log.e(TAG,"request gap sleep failed",e);
+            }
+        }
+        throw exception;
+    }
 }
 
