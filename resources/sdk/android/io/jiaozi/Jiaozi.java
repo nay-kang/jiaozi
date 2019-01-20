@@ -29,6 +29,7 @@ public class Jiaozi {
     private static String current_exp_id = null;
     private static Map<String, String> _config = new HashMap<>();
     private static boolean started = false;
+    private static ArrayList<String> _history = new ArrayList<>();
 
     /**
      * Init Tracker with current context
@@ -257,9 +258,31 @@ public class Jiaozi {
                 params.put("value", json.toString());
             }
             params.put("type", "event");
+            flushHistory(action, params.get("label"));
             request("collect_img.gif", params, null);
         } catch (Exception ex) {
             _errorDebug(ex.toString());
+        }
+    }
+
+    /**
+     * Send Debug History
+     *
+     * @param action
+     * @param label
+     */
+    private static synchronized void flushHistory(String action, String label) {
+        if ("history".equals(action)) {
+            return;
+        }
+        _history.add(action + ":" + label);
+        if (_history.size() > 10) {
+            StringBuilder sb = new StringBuilder();
+            for (String h : _history) {
+                sb.append(h).append(",");
+            }
+            _history.clear();
+            track("debug", "history", sb.toString());
         }
     }
 
