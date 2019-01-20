@@ -15,9 +15,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Jiaozi {
@@ -30,6 +28,7 @@ public class Jiaozi {
     private static String domain = null;
     private static String current_exp_id = null;
     private static Map<String, String> _config = new HashMap<>();
+    private static boolean started = false;
 
     /**
      * Init Tracker with current context
@@ -39,6 +38,15 @@ public class Jiaozi {
     public static void init(@NonNull Context context, @NonNull String domain) {
         Jiaozi.context = context.getApplicationContext();
         Jiaozi.domain = domain;
+        if (started == false) {
+            started = true;
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    track("general", "start");
+                }
+            }, 5_000);
+        }
     }
 
     /**
@@ -83,21 +91,37 @@ public class Jiaozi {
      */
 
     public static void track(String category, String action) {
-        trackEvent(category, action, null, null);
+        try {
+            trackEvent(category, action, null, null);
+        } catch (Exception ex) {
+            _errorDebug(ex.toString());
+        }
     }
 
     public static void track(String category, String action, String label) {
-        trackEvent(category, action, label, null);
+        try {
+            trackEvent(category, action, label, null);
+        } catch (Exception ex) {
+            _errorDebug(ex.toString());
+        }
     }
 
     public static void track(String category, String action, String label, String value) {
-        Map<String, String> extra_value = new HashMap<String, String>();
-        extra_value.put("value", value);
-        trackEvent(category, action, label, extra_value);
+        try {
+            Map<String, String> extra_value = new HashMap<String, String>();
+            extra_value.put("value", value);
+            trackEvent(category, action, label, extra_value);
+        } catch (Exception ex) {
+            _errorDebug(ex.toString());
+        }
     }
 
     public static void track(String category, String action, String label, double value) {
-        track(category, action, label, value, null);
+        try {
+            track(category, action, label, value, null);
+        } catch (Exception ex) {
+            _errorDebug(ex.toString());
+        }
     }
 
     /**
@@ -110,8 +134,12 @@ public class Jiaozi {
      * @param extra    if you have much more event info to send.use this parameter
      */
     public static void track(String category, String action, String label, double value, Map<String, String> extra) {
-        extra.put("value_number", Double.toString(value));
-        trackEvent(category, action, label, extra);
+        try {
+            extra.put("value_number", Double.toString(value));
+            trackEvent(category, action, label, extra);
+        } catch (Exception ex) {
+            _errorDebug(ex.toString());
+        }
     }
 
     /**
@@ -209,27 +237,30 @@ public class Jiaozi {
     }
 
     private static void trackEvent(String category, String action, String label, Map<String, String> value) {
-        Map<String, String> params = new HashMap<>();
-        params.put("category", category);
-        params.put("action", action);
-        if (label != null && !label.isEmpty()) {
-            params.put("label", label);
-        }
-        if (value != null) {
-            if (value.containsKey("value")) {
-                params.put("value", value.get("value"));
-                value.remove("value");
+        try {
+            Map<String, String> params = new HashMap<>();
+            params.put("category", category);
+            params.put("action", action);
+            if (label != null && !label.isEmpty()) {
+                params.put("label", label);
             }
-            if (value.containsKey("value_number")) {
-                params.put("value_number", value.get("value_number"));
-                value.remove("value_number");
+            if (value != null) {
+                if (value.containsKey("value")) {
+                    params.put("value", value.get("value"));
+                    value.remove("value");
+                }
+                if (value.containsKey("value_number")) {
+                    params.put("value_number", value.get("value_number"));
+                    value.remove("value_number");
+                }
+                JSONObject json = new JSONObject(value);
+                params.put("value", json.toString());
             }
-            JSONObject json = new JSONObject(value);
-            params.put("value", json.toString());
+            params.put("type", "event");
+            request("collect_img.gif", params, null);
+        } catch (Exception ex) {
+            _errorDebug(ex.toString());
         }
-
-        params.put("type", "event");
-        request("collect_img.gif", params, null);
     }
 
     /**
@@ -290,9 +321,9 @@ public class Jiaozi {
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
             Jiaozi.okhttpClient = builder
-                    .connectTimeout(5, TimeUnit.SECONDS)
-                    .writeTimeout(5, TimeUnit.SECONDS)
-                    .readTimeout(5, TimeUnit.SECONDS)
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS)
                     .retryOnConnectionFailure(true)
                     .addInterceptor(new RetryInterceptor())
                     .build();
@@ -308,6 +339,7 @@ public class Jiaozi {
 
         url.addQueryParameter("pid", getConfig("profile_id"));
         url.addQueryParameter("_jiaozi_uid", getConfig("uuid"));
+        url.addQueryParameter("_ts", (System.currentTimeMillis() / 1000) + "");
         String user_id = getConfig("user_id");
         if (user_id != null && !user_id.isEmpty()) {
             url.addQueryParameter("user_id", user_id);
@@ -330,12 +362,10 @@ public class Jiaozi {
             public void onFailure(Call call, IOException e) {
                 Log.e(K_APPLICATION, "request error:" + request.url().toString(), e);
                 String cause = "";
-                try{
+                try {
                     cause = e.getCause().toString();
-                }catch(Exception get_e){
-
-                }
-                _errorDebug("onFailure url:" + request.url().toString() + " exception:" + e+" ; cause:"+cause);
+                } catch (Exception get_e) {/*do nothing*/}
+                _errorDebug("onFailure url:" + request.url().toString() + " exception:" + e + " ; cause:" + cause);
                 if (callback != null) {
                     callback.onResult(false, null);
                 }
@@ -367,19 +397,28 @@ public class Jiaozi {
     }
 
     private static void _errorDebug(String errMessage) {
+        Log.e(K_APPLICATION, "_errorDebug log:" + errMessage);
         try {
-            StringBuilder sb = new StringBuilder("https://jiaozi-error.codeedu.net/");
-            sb.append("?error=");
-            sb.append(URLEncoder.encode(errMessage, "utf-8"));
-            URL url = new URL(sb.toString());
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-            in.close();
-            urlConnection.disconnect();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        StringBuilder sb = new StringBuilder("https://jiaozi-error.codeedu.net/");
+                        sb.append("?error=");
+                        sb.append(URLEncoder.encode(errMessage, "utf-8"));
+                        URL url = new URL(sb.toString());
+                        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                        InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                        in.close();
+                        urlConnection.disconnect();
+                    } catch (Exception ex) {
+                        Log.e(K_APPLICATION, "_errorDebug exception", ex);
+                    }
+                }
+            }).start();
         } catch (Exception ex) {
-            Log.e(K_APPLICATION, "send error error!", ex);
+            Log.e(K_APPLICATION, "_errorDebug exception", ex);
         }
-
     }
 
     private static String userAgent = null;
@@ -417,10 +456,10 @@ public class Jiaozi {
 /**
  * Retry request after IOException
  */
-class RetryInterceptor implements Interceptor{
+class RetryInterceptor implements Interceptor {
 
     //max request times
-    public static final int MAX_RETRY = 3;
+    public static final int MAX_RETRY = 4;
     //sleep after failed request
     public static final long REQUEST_GAP = 30_000;
 
@@ -430,22 +469,22 @@ class RetryInterceptor implements Interceptor{
     public Response intercept(Chain chain) throws IOException {
 
         IOException exception = null;
-        for(int i=0;i<MAX_RETRY;i++){
+        for (int i = 0; i < MAX_RETRY; i++) {
             exception = null;
-            try{
+            try {
                 Response response = chain.proceed(chain.request());
                 return response;
-            }catch(IOException e){
+            } catch (IOException e) {
                 exception = e;
-                Log.e(TAG,"request failed:"+i,e);
+                Log.e(TAG, "request failed:" + i, e);
             }
 
             //sleep after last failed request
-            if(i+1==MAX_RETRY) continue;
-            try{
-                Thread.sleep(REQUEST_GAP*(i+1));
-            }catch (InterruptedException e){
-                Log.e(TAG,"request gap sleep failed",e);
+            if (i + 1 == MAX_RETRY) continue;
+            try {
+                Thread.sleep(REQUEST_GAP * (i + 1));
+            } catch (InterruptedException e) {
+                Log.e(TAG, "request gap sleep failed", e);
             }
         }
         throw exception;
