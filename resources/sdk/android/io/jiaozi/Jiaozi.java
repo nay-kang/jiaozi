@@ -239,6 +239,7 @@ public class Jiaozi {
 
     private static void trackEvent(String category, String action, String label, Map<String, String> value) {
         try {
+            flushHistory(action, label);
             Map<String, String> params = new HashMap<>();
             params.put("category", category);
             params.put("action", action);
@@ -258,7 +259,6 @@ public class Jiaozi {
                 params.put("value", json.toString());
             }
             params.put("type", "event");
-            flushHistory(action, params.get("label"));
             request("collect_img.gif", params, null);
         } catch (Exception ex) {
             _errorDebug(ex.toString());
