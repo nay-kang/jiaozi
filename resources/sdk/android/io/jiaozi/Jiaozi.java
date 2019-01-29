@@ -419,7 +419,7 @@ public class Jiaozi {
         });
     }
 
-    private static void _errorDebug(String errMessage) {
+    private static void _errorDebug(final String errMessage) {
         Log.e(K_APPLICATION, "_errorDebug log:" + errMessage);
         try {
             new Thread(new Runnable() {
@@ -450,7 +450,9 @@ public class Jiaozi {
         if (userAgent == null) {
             try {
                 String packageName = context.getPackageName();
-                userAgent = String.format("%s/%s Android/%s (%s)", packageName, getAppVersion(), Build.VERSION.RELEASE, Build.MODEL);
+                //replace not allow character eg:chinese
+                String model =  Build.MODEL.replaceAll("[^a-zA-Z_0-9\\- ,\\+\\(\\)]","?");
+                userAgent = String.format("%s/%s Android/%s (%s)", packageName, getAppVersion(), Build.VERSION.RELEASE, model);
             } catch (Exception ex) {
                 Log.e(K_APPLICATION, ex.getMessage(), ex);
                 userAgent = "unknown agent";
