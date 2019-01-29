@@ -38,6 +38,7 @@ public class Jiaozi {
      */
     public static void init(@NonNull Context context, @NonNull String domain) {
         Jiaozi.context = context.getApplicationContext();
+
         Jiaozi.domain = domain;
         if (started == false) {
             started = true;
@@ -484,7 +485,7 @@ public class Jiaozi {
 class RetryInterceptor implements Interceptor {
 
     //max request times
-    public static final int MAX_RETRY = 4;
+    public static final int MAX_RETRY = 10;
     //sleep after failed request
     public static final long REQUEST_GAP = 30_000;
 
