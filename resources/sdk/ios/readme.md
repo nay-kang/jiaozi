@@ -1,4 +1,4 @@
-## Android SDK Quick Start
+## iOS SDK Quick Start
 
 example code
 
