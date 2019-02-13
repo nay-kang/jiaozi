@@ -25,3 +25,5 @@ config/profile.php
 #eclipse
 .dbeaver-data-sources.xml
 Scripts/
+
+.DS_Store
