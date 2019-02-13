@@ -56,12 +56,12 @@ public final class Jiaozi: NSObject {
     /// Setup User id after user login
     ///
     /// - Parameter userId: app user id
-    public func setUserId(userId: String) {
+    @objc public func setUserId(userId: String) {
         saveConfig(key: "userId", value: userId)
     }
     
     /// Remote User id after user logout
-    public func removeUserId() {
+    @objc public func removeUserId() {
         removeConfig(key: "userId")
     }
     
@@ -94,16 +94,16 @@ public final class Jiaozi: NSObject {
         Jiaozi._userDefaults?.removeObject(forKey: key)
     }
     
-    private static var experiment_id:String?
+    private static var experimentId:String?
     
     
     /// get ab test variation if there is a running experiments
     ///
     /// - Parameters:
-    ///   - experiment_id: abtest experiment id.one abtest a experiment id.ask for product manager
+    ///   - experimentId: abtest experiment id.one abtest a experiment id.ask for product manager
     ///   - callback: a func callback when a variation is ensure.maybe -1,0,1,... or nil when the experiment is stop
-    public func getVariation(experiment_id: String,callback: @escaping ( ( _ : Int?) -> Void ) ){
-        Jiaozi.experiment_id = experiment_id
+    public func getVariation(experimentId: String,callback: @escaping ( ( _ : Int?) -> Void ) ){
+        Jiaozi.experimentId = experimentId
         let url = "\(Jiaozi.domain!)/experiments/\(getConfig(key: "profileId")!).json"
         self.dispatcher.request(url: url, method: "GET", callback: { success,data in
             if success != true {
@@ -115,7 +115,7 @@ public final class Jiaozi: NSObject {
                 for experiment in responseJson {
                     let experiment = experiment as? [String:Any]
                     let exp_id = experiment!["experiment_id"] as? String
-                    if exp_id != experiment_id {
+                    if exp_id != experimentId {
                         continue
                     }
                     let filter = experiment!["filter"] as? [String:String]
@@ -130,7 +130,7 @@ public final class Jiaozi: NSObject {
                     break;
                 }
                 
-                let variation_key = self.getVariationKey(experiment_id: experiment_id)
+                let variation_key = self.getVariationKey(experimentId: experimentId)
                 guard match_experiment != nil else {
                     self.removeConfig(key: variation_key)
                     callback(nil)
@@ -167,8 +167,8 @@ public final class Jiaozi: NSObject {
         })
     }
     
-    func getVariationKey(experiment_id:String) -> String{
-        return "exp.\(experiment_id).var"
+    func getVariationKey(experimentId:String) -> String{
+        return "exp.\(experimentId).var"
     }
     
     // enqueue event
@@ -273,16 +273,16 @@ public final class Jiaozi: NSObject {
     ///   - extra: extra info
     public func track(eventWithCategory category: String, action: String, label: String? = nil, value: Float? = nil,extra: [String:String]? = nil) {
         var variation :String?
-        if Jiaozi.experiment_id != nil {
-            variation = getConfig(key: getVariationKey(experiment_id: Jiaozi.experiment_id!))
+        if Jiaozi.experimentId != nil {
+            variation = getConfig(key: getVariationKey(experimentId: Jiaozi.experimentId!))
         }
-        let event = Event(profileId: getConfig(key: "profileId")!,uuid: getConfig(key: "uuid")!, eventCategory: category, eventAction: action, eventLabel: label, eventValue: value,user_id: getConfig(key: "userId"),eventExtra: extra,experiment_id: Jiaozi.experiment_id,variation:variation)
+        let event = Event(profileId: getConfig(key: "profileId")!,uuid: getConfig(key: "uuid")!, eventCategory: category, eventAction: action, eventLabel: label, eventValue: value,userId: getConfig(key: "userId"),eventExtra: extra,experimentId: Jiaozi.experimentId,variation:variation)
         queue(event: event)
     }
 }
 
 // Objective-c compatibility extension
-@objc public protocol Callback {
+@objc public protocol VariationCallback {
     func completionHandler(variation: NSNumber?)
 }
 //@objc public typealias variationCompletion = (NSNumber)->Void
@@ -295,8 +295,8 @@ extension Jiaozi {
     }
     
     //see getVariation above
-    @objc public func getVariation(experiment_id: String,callback: Callback ){
-        getVariation(experiment_id: experiment_id) { (variation) in
+    @objc public func getVariation(experimentId: String,callback: VariationCallback ){
+        getVariation(experimentId: experimentId) { (variation) in
             var nsVariation:NSNumber?
             if variation != nil {
                 nsVariation = NSNumber(value:variation!)
@@ -421,7 +421,7 @@ internal final class URLSessionDispatcher: Dispatcher {
 internal struct Event {
     let id = NSUUID()
     let uuid: String?
-    let user_id: String?
+    let userId: String?
     let profile_id: String
     
     let eventCategory: String?
@@ -431,21 +431,21 @@ internal struct Event {
     let eventExtra: [String: String]?
     let _ts = Int64(Date().timeIntervalSince1970)
     
-    let experiment_id: String?
+    let experimentId: String?
     let variation: String?
     
     
     public init(profileId : String, uuid: String, eventCategory: String? = nil, eventAction: String? = nil, eventLabel: String? = nil,
-                eventValue: Float? = nil, user_id: String? = nil, eventExtra: [String: String]? = nil,experiment_id:String?=nil,variation:String?=nil) {
+                eventValue: Float? = nil, userId: String? = nil, eventExtra: [String: String]? = nil,experimentId:String?=nil,variation:String?=nil) {
         self.profile_id = profileId
         self.uuid = uuid
         self.eventCategory = eventCategory
         self.eventAction = eventAction
         self.eventLabel = eventLabel
         self.eventValue = eventValue
-        self.user_id = user_id
+        self.userId = userId
         self.eventExtra = eventExtra
-        self.experiment_id = experiment_id
+        self.experimentId = experimentId
         self.variation = variation
     }
     
@@ -477,10 +477,10 @@ internal struct Event {
     /// experiment compact info
     var expVar : String? {
         get {
-            guard experiment_id != nil && variation != nil else{
+            guard experimentId != nil && variation != nil else{
                 return nil
             }
-            return "\(experiment_id ?? ""):\(variation ?? "")"
+            return "\(experimentId ?? ""):\(variation ?? "")"
         }
     }
     
@@ -496,7 +496,7 @@ internal struct Event {
             URLQueryItem(name: "label", value: eventLabel),
             URLQueryItem(name: "value_number", value: eventValue != nil ? "\(eventValue!)" : nil),
             URLQueryItem(name: "value", value: eventExtraJson),
-            URLQueryItem(name: "user_id", value: user_id),
+            URLQueryItem(name: "user_id", value: userId),
             URLQueryItem(name: "pid", value: profile_id),
             URLQueryItem(name: "_ts", value: String(_ts)),
             URLQueryItem(name: "exp_var",value: expVar),

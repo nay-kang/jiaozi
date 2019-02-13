@@ -1,7 +1,26 @@
 ## iOS SDK Quick Start
 
-example code
+Swift Example Code
+```swift
+// init with domain
+Jiaozi.start(domain: "https://example.com")
+// config with profile id and device uuid
+Jiaozi.shared.config(profileId: "PROFILE_ID",uuid: "DEVICE_UUID")
+// after init & config.we can track user event
+Jiaozi.shared.track(eventWithCategory: "user", action: "login", label: "home_screen", value: 10.5,extra:["extra_key":"extra_val"])
 
+// if experiment is setup.this method obtain the variation
+Jiaozi.shared.getVariation(experimentId: "EXPERIMENT_ID") { (variation) in
+    NSLog("variation is:\(variation)")
+}
+
+// user login
+Jiaozi.shared.setUserId(userId:"app_user_id")
+// user logout
+Jiaozi.shared.removeUserId()
+```
+
+Objective-c Example Code
 ```objc
 // init with domain
 [Jiaozi startWithDomain:@"https://example.com"];
@@ -12,7 +31,7 @@ example code
 
 // if experiment is setup.this method obtain the variation
 
-@interface VariationCallback : NSObject<Callback>
+@interface VariationCallback : NSObject<VariationCallback>
 
 @end
 
@@ -24,5 +43,10 @@ example code
 }
 
 // and call get variation
-[Jiaozi.shared getVariationWithExperiment_id:@"EXPERIMENT_ID" callback:[VariationCallback new]];
+[Jiaozi.shared getVariationWithExperimentId:@"EXPERIMENT_ID" callback:[VariationCallback new]];
+
+// user login
+[Jiaozi.shared setUserIdWithUserId:@"app_user_id"];
+// user logout
+[Jiaozi.shared removeUserId];
 ```
