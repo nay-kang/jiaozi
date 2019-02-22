@@ -267,7 +267,7 @@ public final class Jiaozi: NSObject {
     ///   - label: some item id
     ///   - number: if has a number value
     ///   - extra: extra info
-    public func track(eventWithCategory category: String, action: String, label: String? = nil, value: Float? = nil, extra: [String: String]? = nil) {
+    public func track(eventWithCategory category: String, action: String, label: String? = nil, value: Float? = nil, extra: [String: Any]? = nil) {
         var variation: String?
         if Jiaozi.experimentId != nil {
             variation = getConfig(key: getVariationKey(experimentId: Jiaozi.experimentId!))
@@ -287,7 +287,7 @@ extension Jiaozi {
     // see track above
     @objc public func track(eventWithCategory category: String, action: String, label: String? = nil, number: NSNumber? = nil, extra: NSDictionary? = nil) {
         let value = number == nil ? nil : number!.floatValue
-        track(eventWithCategory: category, action: action, label: label, value: value, extra: extra as? [String: String])
+        track(eventWithCategory: category, action: action, label: label, value: value, extra: extra as? [String: Any])
     }
 
     // see getVariation above
@@ -424,14 +424,14 @@ internal struct Event {
     let eventAction: String?
     let eventLabel: String?
     let eventValue: Float?
-    let eventExtra: [String: String]?
+    let eventExtra: [String: Any]?
     let _ts = Int64(Date().timeIntervalSince1970)
 
     let experimentId: String?
     let variation: String?
 
     public init(profileId: String, uuid: String, eventCategory: String? = nil, eventAction: String? = nil, eventLabel: String? = nil,
-                eventValue: Float? = nil, userId: String? = nil, eventExtra: [String: String]? = nil, experimentId: String? = nil, variation: String? = nil) {
+                eventValue: Float? = nil, userId: String? = nil, eventExtra: [String: Any]? = nil, experimentId: String? = nil, variation: String? = nil) {
         profile_id = profileId
         self.uuid = uuid
         self.eventCategory = eventCategory
