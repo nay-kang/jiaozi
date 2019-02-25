@@ -14,7 +14,11 @@ public final class Jiaozi: NSObject {
     /// This logger is used to perform logging of all sorts of Matomo related information.
     /// Per default it is a `DefaultLogger` with a `minLevel` of `LogLevel.warning`. You can
     /// set your own Logger with a custom `minLevel` or a complete custom logging mechanism.
+    #if DEBUG
     internal var logger: Logger = DefaultLogger(minLevel: .debug)
+    #else
+    internal var logger: Logger = DefaultLogger(minLevel: .warning)
+    #endif
 
     // static shared instance
     internal static var _sharedInstance: Jiaozi?
