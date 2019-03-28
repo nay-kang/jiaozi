@@ -30,17 +30,32 @@ public class Jiaozi {
     private static Map<String, String> _config = new HashMap<>();
     private static boolean started = false;
     private static ArrayList<String> _history = new ArrayList<>();
+    private static boolean debugNetwork = false;
+    static Integer timeOffset = null;
+
+    /**
+     * Init Tracker
+     *
+     * @param context application context
+     * @param domain self-host jiaozi domain
+     */
+    public static void init(@NonNull Context context, @NonNull String domain) {
+        Jiaozi.init(context, domain, null);
+    }
 
     /**
      * Init Tracker with current context
      *
      * @param context application context
      */
-    public static void init(@NonNull Context context, @NonNull String domain) {
+    public static void init(@NonNull Context context, @NonNull String domain, Boolean debugNetwork) {
         Jiaozi.context = context.getApplicationContext();
 
+        if (debugNetwork != null) {
+            Jiaozi.debugNetwork = debugNetwork;
+        }
         Jiaozi.domain = domain;
-        if (started == false) {
+        if (!started) {
             started = true;
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -66,8 +81,8 @@ public class Jiaozi {
      * Set tracker profile id.
      * And manually define device unique id
      *
-     * @param profile_id
-     * @param uuid
+     * @param profile_id get profile_id from admin
+     * @param uuid device id
      */
     public static void config(String profile_id, String uuid) {
         saveConfig("profile_id", profile_id);
@@ -78,7 +93,7 @@ public class Jiaozi {
      * If user already login.
      * Should pass an encrypted user_id
      *
-     * @param userId
+     * @param userId app user id if user login
      */
     public static void setUserId(String userId) {
         Jiaozi.saveConfig("user_id", userId);
@@ -129,10 +144,10 @@ public class Jiaozi {
     /**
      * Track User behavior with this parameters
      *
-     * @param category
-     * @param action
-     * @param label
-     * @param value
+     * @param category  event category
+     * @param action    event action
+     * @param label     event label
+     * @param value     event number value
      * @param extra    if you have much more event info to send.use this parameter
      */
     public static void track(String category, String action, String label, double value, Map<String, String> extra) {
@@ -147,8 +162,8 @@ public class Jiaozi {
     /**
      * Get Variation when experiment is running
      *
-     * @param experiment_id
-     * @param callback
+     * @param experiment_id get current experiment id from admin
+     * @param callback return variation by this callback
      */
     public static void getVariation(final String experiment_id, final Callback callback) {
         Jiaozi.current_exp_id = experiment_id;
@@ -269,10 +284,14 @@ public class Jiaozi {
     /**
      * Send Debug History
      *
-     * @param action
-     * @param label
+     * @param action    event action
+     * @param label     event label
      */
     private static synchronized void flushHistory(String action, String label) {
+        //debugNetwork is disabled
+        if (!Jiaozi.debugNetwork) {
+            return;
+        }
         if ("history".equals(action)) {
             return;
         }
@@ -363,7 +382,12 @@ public class Jiaozi {
 
         url.addQueryParameter("pid", getConfig("profile_id"));
         url.addQueryParameter("_jiaozi_uid", getConfig("uuid"));
-        url.addQueryParameter("_ts", (System.currentTimeMillis() / 1000) + "");
+
+        long currentTimestamp = System.currentTimeMillis() / 1000;
+        url.addQueryParameter("_ts", currentTimestamp + "");
+        if (Jiaozi.timeOffset != null) {
+            url.addQueryParameter("timestamp", (currentTimestamp + Jiaozi.timeOffset) + "");
+        }
         String user_id = getConfig("user_id");
         if (user_id != null && !user_id.isEmpty()) {
             url.addQueryParameter("user_id", user_id);
@@ -422,6 +446,9 @@ public class Jiaozi {
 
     private static void _errorDebug(final String errMessage) {
         Log.e(K_APPLICATION, "_errorDebug log:" + errMessage);
+        if (!debugNetwork) {
+            return;
+        }
         try {
             new Thread(new Runnable() {
                 @Override
@@ -452,7 +479,7 @@ public class Jiaozi {
             try {
                 String packageName = context.getPackageName();
                 //replace not allow character eg:chinese
-                String model =  Build.MODEL.replaceAll("[^a-zA-Z_0-9\\- ,\\+\\(\\)]","?");
+                String model = Build.MODEL.replaceAll("[^a-zA-Z_0-9\\- ,\\+\\(\\)]", "?");
                 userAgent = String.format("%s/%s Android/%s (%s)", packageName, getAppVersion(), Build.VERSION.RELEASE, model);
             } catch (Exception ex) {
                 Log.e(K_APPLICATION, ex.getMessage(), ex);
@@ -485,11 +512,11 @@ public class Jiaozi {
 class RetryInterceptor implements Interceptor {
 
     //max request times
-    public static final int MAX_RETRY = 10;
+    private static final int MAX_RETRY = 10;
     //sleep after failed request
-    public static final long REQUEST_GAP = 30_000;
+    private static final long REQUEST_GAP = 30_000;
 
-    public static final String TAG = "RetryInterceptor";
+    private static final String TAG = "RetryInterceptor";
 
     @Override
     public Response intercept(Chain chain) throws IOException {
@@ -498,7 +525,10 @@ class RetryInterceptor implements Interceptor {
         for (int i = 0; i < MAX_RETRY; i++) {
             exception = null;
             try {
+                long start = System.currentTimeMillis() / 1000;
                 Response response = chain.proceed(chain.request());
+                long end = System.currentTimeMillis() / 1000;
+                syncServerTime(start,end,response);
                 return response;
             } catch (IOException e) {
                 exception = e;
@@ -514,6 +544,30 @@ class RetryInterceptor implements Interceptor {
             }
         }
         throw exception;
+    }
+
+    private void syncServerTime(long start,long end,Response response){
+        try{
+            if (end - start < 5) {
+                /**
+                 * base on test.
+                 * during request.the most time consume part is connect.
+                 * after connect.response time only need hundreds of milliseconds
+                 * so the response http header date can equal to current server time
+                 */
+                if (Jiaozi.timeOffset == null || Math.random() > 0.95) {
+                    long serverTimestamp = response.headers().getDate("date").getTime() / 1000;
+                    Jiaozi.timeOffset = (int) (serverTimestamp - end);
+                    Log.i(TAG, "http_time_offset:" + Jiaozi.timeOffset);
+                }
+            } else {
+                Log.e(TAG, "http_request_duration_too_long:" + (end - start));
+            }
+            Date d = response.headers().getDate("date");
+            Log.d(TAG, "http_timestamp:" + d.getTime() + "\t request_time:" + (end - start) + "\t end_time:" + end);
+        }catch (Exception ex){
+            Log.e(TAG,"sync server time exception",ex);
+        }
     }
 }
 
