@@ -16,7 +16,7 @@ class CollectionController extends Controller
             'cookie'    => $request->cookies->all(),
             'query'     => $request->query->all(),
             'header'    => $request->headers->all(),
-            'timestamp' => $request->query('timestamp',time()),
+            'timestamp' => intval($request->query('timestamp',time())),
             'ip'        => $request->getClientIp(),
         ]));
         return response(base64_decode(self::GIF_ONE_PIXEL),Response::HTTP_OK,['Content-Type'=>'image/gif']);
