@@ -11,13 +11,11 @@ public final class Jiaozi: NSObject {
 
     private static var domain: String?
 
-    /// This logger is used to perform logging of all sorts of Matomo related information.
-    /// Per default it is a `DefaultLogger` with a `minLevel` of `LogLevel.warning`. You can
-    /// set your own Logger with a custom `minLevel` or a complete custom logging mechanism.
+    /// set environment in xcode to enable or diable debug output
     #if DEBUG
-    internal var logger: Logger = DefaultLogger(minLevel: .debug)
+        internal var logger: Logger = DefaultLogger(minLevel: .debug)
     #else
-    internal var logger: Logger = DefaultLogger(minLevel: .warning)
+        internal var logger: Logger = DefaultLogger(minLevel: .warning)
     #endif
 
     // static shared instance
@@ -167,7 +165,7 @@ public final class Jiaozi: NSObject {
         })
     }
 
-    func getVariationKey(experimentId: String) -> String {
+    private func getVariationKey(experimentId: String) -> String {
         return "exp.\(experimentId).var"
     }
 
@@ -378,7 +376,8 @@ internal final class URLSessionDispatcher: Dispatcher {
     public init(baseURL: String) {
         self.baseURL = baseURL
         timeout = 10
-        session = URLSession.shared
+//        session = URLSession.shared
+        session = URLSession(configuration: .default, delegate: JzURLSessionTaskDelegate(), delegateQueue: nil)
         userAgent = defaultUserAgent()
     }
 
@@ -389,16 +388,15 @@ internal final class URLSessionDispatcher: Dispatcher {
         let model = getModelName()
         return String(format: "%@/%@ iOS/%@ (%@)", bundleID ?? "unknown", appVersion, systemVersion, model ?? "unknown iPhone")
     }
-    
+
     private func getModelName() -> String? {
         var size = 0
         sysctlbyname("hw.machine", nil, &size, nil, 0)
-        var machine = [CChar](repeating: 0,  count: Int(size))
+        var machine = [CChar](repeating: 0, count: Int(size))
         sysctlbyname("hw.machine", &machine, &size, nil, 0)
         let platform = String(cString: machine)
 //        let platform = currentPlatform()
         switch platform {
-            
         case "iPod5,1":                                 return "iPod Touch 5"
         case "iPod7,1":                                 return "iPod Touch 6"
         case "iPhone3,1", "iPhone3,2", "iPhone3,3":     return "iPhone 4"
@@ -441,7 +439,7 @@ internal final class URLSessionDispatcher: Dispatcher {
         case "AudioAccessory1,1":                       return "HomePod"
             
         case "i386","x86_64":                           return "Simulator"
-            
+
         default: return nil
         }
     }
@@ -452,10 +450,7 @@ internal final class URLSessionDispatcher: Dispatcher {
 
     public func send(event: Event, callback: @escaping (_ success: Bool, _ data: Data?) -> Void) {
         let queryParams = event.queryParams()
-
-        //        let request = buildRequest(baseURL: "\(baseURL)/collect_img.gif?\(queryParams)", method: "GET")
         request(url: "\(baseURL)/collect_img.gif?\(queryParams)", method: "GET", callback: callback)
-        //        send(request: request, success: success, failure: failure)
     }
 
     internal func request(url: String, method: String, callback: @escaping (_ success: Bool, _ data: Data?) -> Void) {
@@ -473,6 +468,29 @@ internal final class URLSessionDispatcher: Dispatcher {
     }
 }
 
+internal class JzURLSessionTaskDelegate: NSObject, URLSessionTaskDelegate {
+    func urlSession(_: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        do {
+            let response = task.response as? HTTPURLResponse
+            let dateStr = response?.allHeaderFields["Date"] as! String
+            //        print(Date(),"request interval",metrics.taskInterval)
+            //        print(Date(),"request duration",metrics.taskInterval.duration)
+            let dateFormater = DateFormatter()
+            dateFormater.dateFormat = "EEEE, dd LLL yyyy HH:mm:ss zzz"
+            let httpTimestamp = Int64(dateFormater.date(from: dateStr)!.timeIntervalSince1970)
+            //        print(Date(),"http datetime",dateStr)
+            //        print(Date(),"http timestamp",httpTimestamp)
+            //        print(Date(),"URL:",task.currentRequest?.url!)
+            if metrics.taskInterval.duration < 5 {
+                if Event.timeOffset == nil || Double.random(in: 0 ..< 1) > 0.95 {
+                    Event.timeOffset = httpTimestamp - Int64(Date().timeIntervalSince1970)
+                    //                print(Date(),"timeOffset",Event.timeOffset)
+                }
+            }
+        } catch {}
+    }
+}
+
 /// Events
 internal struct Event {
     let id = NSUUID()
@@ -486,6 +504,8 @@ internal struct Event {
     let eventValue: Float?
     let eventExtra: [String: Any]?
     let _ts = Int64(Date().timeIntervalSince1970)
+
+    static var timeOffset: Int64?
 
     let experimentId: String?
     let variation: String?
@@ -505,13 +525,13 @@ internal struct Event {
     }
 
     internal func queryParams() -> String {
-        let queryParams = queryItems.compactMap({ item in
+        let queryParams = queryItems.compactMap { item in
             guard let value = item.value,
                 let encodeValue = value.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else {
                 return nil
             }
             return "\(item.name)=\(encodeValue)"
-        }).joined(separator: "&")
+        }.joined(separator: "&")
         return queryParams
     }
 
@@ -525,6 +545,13 @@ internal struct Event {
         } catch {
             return nil
         }
+    }
+
+    var timestamp: String? {
+        guard Event.timeOffset != nil else {
+            return nil
+        }
+        return "\(Event.timeOffset! + _ts)"
     }
 
     /// experiment compact info
@@ -549,6 +576,7 @@ internal struct Event {
             URLQueryItem(name: "pid", value: profile_id),
             URLQueryItem(name: "_ts", value: String(_ts)),
             URLQueryItem(name: "exp_var", value: expVar),
+            URLQueryItem(name: "timestamp", value: timestamp),
         ].filter { $0.value != nil }
 
         return items
