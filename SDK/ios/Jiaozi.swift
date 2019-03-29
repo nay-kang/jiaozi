@@ -38,6 +38,9 @@ public final class Jiaozi: NSObject {
         self.dispatcher = dispatcher
         super.init()
         startDispatchTimer()
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { (Timer) in
+            self.track(eventWithCategory: "general", action: "start",label: nil,value: nil)
+        }
     }
 
     /// Setup profileId and uuid for current app
