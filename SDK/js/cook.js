@@ -239,7 +239,7 @@ Jiaozi.prototype = {
     '_config' : {},
 	'init':function(){
 		var COOKIE_KEY = '_jiaozi_uid';
-		var baseHost = "jiaozi.stylewe.com";
+		var baseHost = __REPLACE_THIS_DOMAIN__;
 		//set Cookie
 		var cookieStore = Cookies.noConflict();
 		var uuid = cookieStore.get(COOKIE_KEY);
@@ -265,12 +265,12 @@ Jiaozi.prototype = {
 				var r = null;
 				if(r = src.match(/pid\=(\w+)&?/)){
 					pid = r[1];
-					break;	
+					break;
 				}
 			}
 		}
-		
-		
+
+
 		this.info = {
 			"baseHost":baseHost,
 			'host':"https://"+baseHost,
@@ -297,7 +297,7 @@ Jiaozi.prototype = {
 		    data[item] = this._config[item];
 		}
 		data['_t'] = new Date().getTime();
-		
+
 		var url = this.info.host+"/collect_img.gif?"+this.paramsToUrl(data);
 		var img = window.document.createElement('img');
 		img.setAttribute("src",url);
@@ -316,7 +316,7 @@ Jiaozi.prototype = {
 	},
 	'set':function(key,val){
 	    this._config[key] = val;
-	} 
+	}
 };
 
 var jz = new Jiaozi();
