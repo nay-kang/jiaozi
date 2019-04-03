@@ -5,6 +5,7 @@ use Symfony\Component\HttpFoundation\HeaderBag;
 use App\Extensions\ElasticClient;
 use App\Extensions\Util;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 
 class CollectionJob extends Job{
     
@@ -30,25 +31,33 @@ class CollectionJob extends Job{
         $headers = new HeaderBag();
         $headers->add(array_get($this->_data, 'header',[]));
         
-        if (! ($result = $this->getCommonData($this->_data,$headers))) {
+        if (! ($data = $this->getCommonData($this->_data,$headers))) {
             $this->log('request data parse common data failed', $this->_data);
             return;
         }
-        if($result['type'] == 'pageview'){
-            $result = array_merge($result,$this->getPageviewInfo($result,$this->_data, $headers));
+        if($data['type'] == 'pageview'){
+            $data = array_merge($data,$this->getPageviewInfo($data,$this->_data, $headers));
         }
-        if($result['type'] == 'event'){
-            $r = $this->getEventInfo($result,$this->_data);
+        if($data['type'] == 'event'){
+            $r = $this->getEventInfo($data,$this->_data);
             if($r){
-                //$result = array_merge($result,$r);
-                $result['event'] = $r;
+                $data['event'] = $r;
             }else{
                 $this->log('request data parse event failed', $this->_data);
                 return;
             }
         }
         
-        ElasticClient::getInstance()->save($result);
+        $result = ElasticClient::getInstance()->save($data);
+        
+        try{
+            $is_broadcast = config('profile.'.$data['profile_id'].'.broadcast_url',null);
+            if($is_broadcast){
+                Queue::pushOn('broadcast_event', new BroadcastEventJob($result['_id'],$data));
+            }
+        }catch(\Throwable $ex){
+            $this->log("broadcast event failed:".$ex->getMessage(),$data);
+        }
     }
     
     protected function getPageviewInfo(array $commonData,array $request,HeaderBag $headers){

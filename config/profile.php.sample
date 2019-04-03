@@ -23,7 +23,8 @@ return [
                     'client_version' => '1.0',
                 ]
             ]
-        ]
+        ],
+        "broadcast_url" => "http://thirdpart.com",
     ]
 ];
 ?>

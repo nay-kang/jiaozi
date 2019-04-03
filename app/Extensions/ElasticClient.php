@@ -2,6 +2,7 @@
 namespace App\Extensions;
 
 use Elasticsearch;
+use Illuminate\Support\Facades\Log;
 
 class ElasticClient
 {
@@ -38,11 +39,12 @@ class ElasticClient
         $index = $this->getIndex($date);
         $this->checkIndex($index);
         
-        $this->esClient->index([
+        $result = $this->esClient->index([
             'index' => $index,
             'type' => self::INDEX_TYPE_NAME,
             'body' => $data
         ]);
+        return $result;
     }
     
     /**
