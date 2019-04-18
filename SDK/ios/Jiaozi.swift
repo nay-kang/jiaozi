@@ -38,9 +38,14 @@ public final class Jiaozi: NSObject {
         self.dispatcher = dispatcher
         super.init()
         startDispatchTimer()
-        Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { (Timer) in
-            self.track(eventWithCategory: "general", action: "start",label: nil,value: nil)
-        }
+//        Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { (Timer) in
+//            self.track(eventWithCategory: "general", action: "start",label: nil,value: nil)
+//        }
+        Timer.scheduledTimer(timeInterval: 5, target: self, selector: #selector(trackStart), userInfo: nil, repeats: false)
+    }
+    
+    @objc private func trackStart(){
+        self.track(eventWithCategory: "general", action: "start",label: nil,value: nil)
     }
 
     /// Setup profileId and uuid for current app
@@ -364,6 +369,8 @@ internal protocol Dispatcher {
 
     func request(url: String, method: String, callback: @escaping (_ success: Bool, _ data: Data?) -> Void)
 }
+/// ugly code for ios9
+//let above_ios9 = floor(NSFoundationVersionNumber) >= floor(NSFoundationVersionNumber10_0)
 
 internal final class URLSessionDispatcher: Dispatcher {
     private let timeout: TimeInterval
@@ -379,8 +386,11 @@ internal final class URLSessionDispatcher: Dispatcher {
     public init(baseURL: String) {
         self.baseURL = baseURL
         timeout = 10
-//        session = URLSession.shared
-        session = URLSession(configuration: .default, delegate: JzURLSessionTaskDelegate(), delegateQueue: nil)
+        if #available(iOS 10.0, *){
+            session = URLSession(configuration: .default, delegate: JzURLSessionTaskDelegate(), delegateQueue: nil)
+        }else{
+            session = URLSession.shared
+        }
         userAgent = defaultUserAgent()
     }
 
@@ -471,7 +481,9 @@ internal final class URLSessionDispatcher: Dispatcher {
     }
 }
 
+
 internal class JzURLSessionTaskDelegate: NSObject, URLSessionTaskDelegate {
+    @available(iOS 10.0, *)
     func urlSession(_: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         do {
             let response = task.response as? HTTPURLResponse
