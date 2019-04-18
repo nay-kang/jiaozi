@@ -29,7 +29,7 @@ class Util{
         }
         
         // user-agent app/1.2.3 iOS/11.2.6 (iPhone 7 Plus)
-        if(preg_match('/^(.*)\/(.*) (.*)\/(.*) \((.*)\)$/', $userAgent,$matches)){
+        if(preg_match('/^(.*)\/(.*) (.*)\/([0-9\.]+) \((.*)\)$/', $userAgent,$matches)){
             return [
                 'os' => $matches[3],
                 'os_version' => $matches[4],
