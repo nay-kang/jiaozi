@@ -485,24 +485,24 @@ internal final class URLSessionDispatcher: Dispatcher {
 internal class JzURLSessionTaskDelegate: NSObject, URLSessionTaskDelegate {
     @available(iOS 10.0, *)
     func urlSession(_: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
-        do {
-            let response = task.response as? HTTPURLResponse
-            let dateStr = response?.allHeaderFields["Date"] as! String
-            //        print(Date(),"request interval",metrics.taskInterval)
-            //        print(Date(),"request duration",metrics.taskInterval.duration)
-            let dateFormater = DateFormatter()
-            dateFormater.dateFormat = "EEEE, dd LLL yyyy HH:mm:ss zzz"
-            let httpTimestamp = Int64(dateFormater.date(from: dateStr)!.timeIntervalSince1970)
-            //        print(Date(),"http datetime",dateStr)
-            //        print(Date(),"http timestamp",httpTimestamp)
-            //        print(Date(),"URL:",task.currentRequest?.url!)
-            if metrics.taskInterval.duration < 5 {
-                if Event.timeOffset == nil || Double.random(in: 0 ..< 1) > 0.95 {
-                    Event.timeOffset = httpTimestamp - Int64(Date().timeIntervalSince1970)
-                    //                print(Date(),"timeOffset",Event.timeOffset)
-                }
+        guard let response = task.response as? HTTPURLResponse else {
+            return
+        }
+        guard let dateStr = response.allHeaderFields["Date"] as? String else {
+            return
+        }
+        let dateFormater = DateFormatter()
+        dateFormater.dateFormat = "EEEE, dd LLL yyyy HH:mm:ss zzz"
+        dateFormater.locale = Locale(identifier: "en_US")
+        guard let serverDate = dateFormater.date(from: dateStr) else {
+            return
+        }
+        let httpTimestamp = Int64(serverDate.timeIntervalSince1970)
+        if metrics.taskInterval.duration < 5 {
+            if Event.timeOffset == nil || Double.random(in: 0 ..< 1) > 0.95 {
+                Event.timeOffset = httpTimestamp - Int64(Date().timeIntervalSince1970)
             }
-        } catch {}
+        }
     }
 }
 
